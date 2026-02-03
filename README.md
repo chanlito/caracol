@@ -1,75 +1,78 @@
-# Nuxt Minimal Starter
+# Caracol
 
-Look at the [Nuxt documentation](https://nuxt.com/docs/getting-started/introduction) to learn more.
+A modern Nuxt 4 application built with shadcn-vue, Tailwind CSS, and TypeScript.
 
-## Setup
+## Quick Start
 
-Make sure to install dependencies:
+Install dependencies:
 
 ```bash
-# npm
 npm install
-
-# pnpm
-pnpm install
-
-# yarn
-yarn install
-
-# bun
-bun install
 ```
 
-## Development Server
-
-Start the development server on `http://localhost:3000`:
+Start the development server:
 
 ```bash
-# npm
 npm run dev
-
-# pnpm
-pnpm dev
-
-# yarn
-yarn dev
-
-# bun
-bun run dev
 ```
 
-## Production
+Visit `http://localhost:3000` to see your app.
 
-Build the application for production:
+## Available Scripts
+
+- `npm run dev` - Start development server
+- `npm run build` - Build for production
+- `npm run preview` - Preview production build locally
+- `npm run generate` - Generate static site
+- `npm run lint` - Lint and fix code
+
+## Tech Stack
+
+- **Nuxt 4** - Vue.js framework
+- **shadcn-vue** - UI component library
+- **Tailwind CSS** - Utility-first CSS framework
+- **TypeScript** - Type-safe JavaScript
+- **@nuxt/icon** - Icon system with Iconify
+- **@nuxtjs/color-mode** - Dark/light theme support
+
+## Project Structure
+
+```
+app/
+├── components/     # Vue components (auto-imported)
+│   └── ui/        # shadcn-vue components
+├── pages/         # File-based routing
+├── assets/        # CSS and other assets
+└── lib/           # Utilities
+```
+
+## Adding UI Components
+
+This project uses [shadcn-vue](https://www.shadcn-vue.com/). To add a component:
 
 ```bash
-# npm
-npm run build
-
-# pnpm
-pnpm build
-
-# yarn
-yarn build
-
-# bun
-bun run build
+npx shadcn-vue@latest add <component-name>
 ```
 
-Locally preview production build:
+Components are auto-imported - no need to manually import them.
 
-```bash
-# npm
-npm run preview
+## Icons
 
-# pnpm
-pnpm preview
+Icons are provided via [@nuxt/icon](https://nuxt.com/modules/icon). Browse available icons at [icones.js.org](https://icones.js.org).
 
-# yarn
-yarn preview
-
-# bun
-bun run preview
+```vue
+<template>
+  <Icon name="lucide:sun" />
+</template>
 ```
 
-Check out the [deployment documentation](https://nuxt.com/docs/getting-started/deployment) for more information.
+## Learn More
+
+- [Nuxt Documentation](https://nuxt.com/docs/getting-started/introduction)
+- [shadcn-vue Documentation](https://www.shadcn-vue.com/)
+- [Tailwind CSS Documentation](https://tailwindcss.com/docs)
+- [Deployment Guide](https://nuxt.com/docs/getting-started/deployment)
+
+## Development Guidelines
+
+For detailed coding standards, commit guidelines, and development practices, see [AGENTS.md](./AGENTS.md).
