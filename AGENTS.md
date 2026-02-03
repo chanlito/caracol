@@ -37,6 +37,14 @@ This project uses **shadcn-vue**. To add a new component:
 npx shadcn-vue@latest add <component>
 ```
 
+### Themes
+
+To install a new shadcn theme:
+
+```bash
+npx shadcn-vue@latest add <theme-url>
+```
+
 ### Auto-imports
 
 Components in `app/components/ui/` are auto-imported by Nuxt. Do **not** explicitly import them.
