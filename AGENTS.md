@@ -84,6 +84,21 @@ import { Button } from '~/components/ui/button'
 </script>
 ```
 
+### Icons
+
+This project uses **@nuxt/icon**. The `Icon` component is auto-imported.
+
+Install collections: `npm i -D @iconify-json/lucide @iconify-json/tabler`
+
+```vue
+<template>
+  <Icon name="lucide:sun" />
+  <Icon :name="iconName" class="h-5 w-5" />
+</template>
+```
+
+Browse icons at [icones.js.org](https://icones.js.org).
+
 ## Coding Style
 
 - **Language**: TypeScript/ESM (`"type": "module"` in `package.json`)
@@ -92,6 +107,29 @@ import { Button } from '~/components/ui/button'
 - **Naming**:
   - `PascalCase` for component file names and tags
   - `kebab-case` for in-DOM templates and route file names
+- **Event Handlers**: Prefer function declarations for event handlers like button clicks.
+
+**Good**:
+
+```vue
+<template>
+  <Button @click="handleClick">Click me</Button>
+</template>
+
+<script setup lang="ts">
+function handleClick() {
+  // Handle click
+}
+</script>
+```
+
+**Bad**:
+
+```vue
+<template>
+  <Button @click="() => handleClick()">Click me</Button>
+</template>
+```
 
 ## Commit Guidelines
 
