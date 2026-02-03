@@ -6,13 +6,14 @@
 - `nuxt.config.ts`: Nuxt configuration.
 - `eslint.config.mjs`: Linting configuration.
 - `package.json`: Scripts and dependencies.
+- UI components: This project uses **shadcn-vue**. To add a new component, run: `npx shadcn-vue@latest add <component>` (e.g. `npx shadcn-vue@latest add button`).
 
 ## Build, Test, and Development Commands
-- `pnpm install`: Install dependencies (use `pnpm` for this repo).
-- `pnpm dev`: Run the Nuxt dev server at `http://localhost:3000`.
-- `pnpm build`: Build for production.
-- `pnpm preview`: Preview the production build locally.
-- `pnpm generate`: Generate a static site output (Nuxt generate).
+- `npm install`: Install dependencies (use `npm` for this repo).
+- `npm run dev`: Run the Nuxt dev server at `http://localhost:3000`.
+- `npm run build`: Build for production.
+- `npm run preview`: Preview the production build locally.
+- `npm run generate`: Generate a static site output (Nuxt generate).
 
 ## Coding Style & Naming Conventions
 - Language: TypeScript/ESM (`"type": "module"` in `package.json`).
@@ -22,7 +23,7 @@
 
 ## Testing Guidelines
 - No test framework is configured yet.
-- If adding tests, document the chosen framework and add scripts (e.g., `pnpm test`) in `package.json`.
+- If adding tests, document the chosen framework and add scripts (e.g., `npm run test`) in `package.json`.
 
 ## Commit Guidelines
 Conventional Commits with emojis: `type(scope): emoji message` where type+emoji are `feat`✨, `fix`🐛, `docs`📝, `style`🎨, `refactor`♻️, `perf`⚡, `test`✅, `build`🏗️, `ci`🤖, `chore`🔧, `revert`⏪.  
@@ -37,4 +38,4 @@ PRs: short summary, UI screenshots when relevant, linked issues/context.
 - Keep changes small and focused.
 - Prefer updating `app/` for UI changes and `public/` for static assets.
 - If asked to commit and nothing is staged, assume all current changes should be committed; if some changes are staged, only commit the staged set.
-- Use `pnpm` for all package manager commands.
+- Use `npm` for all package manager commands.
