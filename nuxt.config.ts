@@ -11,6 +11,11 @@ export default defineNuxtConfig({
   devtools: { enabled: true },
   colorMode: {
     classSuffix: '',
+    storage: 'cookie',
+  },
+  routeRules: {
+    '/app/**': { appLayout: 'app' },
+    '/admin/**': { appLayout: 'admin' },
   },
   future: { compatibilityVersion: 4 },
   compatibilityDate: '2025-07-15',

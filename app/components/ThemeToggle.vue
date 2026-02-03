@@ -1,33 +1,22 @@
 <script setup lang="ts">
 const colorMode = useColorMode()
 
-const iconName = computed(() => {
+// Preference is synced from cookie in middleware, so server and client match — no hydration mismatch.
+
+const theme = computed(() => {
   switch (colorMode.preference) {
     case 'light':
-      return 'lucide:sun'
+      return { icon: 'lucide:sun', label: 'Light mode' }
     case 'dark':
-      return 'lucide:moon'
+      return { icon: 'lucide:moon', label: 'Dark mode' }
     case 'system':
-      return 'lucide:monitor'
+      return { icon: 'lucide:monitor', label: 'System preference' }
     default:
-      return 'lucide:monitor'
+      return { icon: 'lucide:monitor', label: 'Toggle theme' }
   }
 })
 
-const label = computed(() => {
-  switch (colorMode.preference) {
-    case 'light':
-      return 'Light mode'
-    case 'dark':
-      return 'Dark mode'
-    case 'system':
-      return 'System preference'
-    default:
-      return 'Toggle theme'
-  }
-})
-
-const toggleTheme = () => {
+function toggleTheme() {
   if (colorMode.preference === 'light') {
     colorMode.preference = 'dark'
   }
@@ -41,15 +30,22 @@ const toggleTheme = () => {
 </script>
 
 <template>
-  <Button
-    variant="ghost"
-    size="icon"
-    :aria-label="label"
-    @click="toggleTheme"
-  >
-    <Icon
-      :name="iconName"
-      class="h-5 w-5"
-    />
-  </Button>
+  <Tooltip>
+    <TooltipTrigger as-child>
+      <Button
+        variant="ghost"
+        size="icon"
+        :aria-label="theme.label"
+        @click="toggleTheme"
+      >
+        <Icon
+          :name="theme.icon"
+          class="h-5 w-5"
+        />
+      </Button>
+    </TooltipTrigger>
+    <TooltipContent>
+      <p>{{ theme.label }}</p>
+    </TooltipContent>
+  </Tooltip>
 </template>
