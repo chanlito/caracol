@@ -1,5 +1,5 @@
 <template>
-  <div class="container flex flex-col items-center justify-center px-4 py-16">
+  <div class="container mx-auto flex min-h-full max-w-5xl flex-col items-center justify-center px-4 py-16">
     <h1 class="mb-2 text-3xl font-bold">
       Welcome to Caracol
     </h1>

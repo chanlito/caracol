@@ -1,7 +1,7 @@
 <template>
   <div class="flex min-h-screen flex-col">
     <header class="border-b">
-      <div class="container flex h-14 items-center justify-between px-4">
+      <div class="container mx-auto flex h-14 max-w-5xl items-center justify-between px-4">
         <NuxtLink
           to="/"
           class="font-semibold"
@@ -34,7 +34,7 @@
         </nav>
       </div>
     </header>
-    <main class="flex-1">
+    <main class="flex flex-1 flex-col">
       <slot />
     </main>
   </div>
