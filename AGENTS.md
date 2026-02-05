@@ -6,6 +6,7 @@
 - Prefer updating `app/` for UI changes and `public/` for static assets.
 - Use `npm` for all package manager commands.
 - If asked to commit and nothing is staged, assume all current changes should be committed; if some changes are staged, only commit the staged set.
+- **Do not modify files in `app/components/ui/`** without explicit user permission — these are shadcn-vue defaults. Extend them instead (see [Extending UI Components](#extending-ui-components)).
 
 ## Project Structure
 
@@ -86,18 +87,78 @@ import { Button } from '~/components/ui/button'
 
 ### Icons
 
-This project uses **@nuxt/icon**. The `Icon` component is auto-imported.
+This project uses **lucide-vue-next** as the primary icon library (consistent with shadcn-vue).
 
-Install collections: `npm i -D @iconify-json/lucide @iconify-json/tabler`
+**Primary: lucide-vue-next**
 
 ```vue
+<script setup lang="ts">
+import { Sun, Moon, ChevronRight } from 'lucide-vue-next'
+</script>
+
 <template>
-  <Icon name="lucide:sun" />
-  <Icon :name="iconName" class="h-5 w-5" />
+  <Sun class="size-4" />
+  <Moon :size="20" />
+  <ChevronRight class="ml-auto" />
 </template>
 ```
 
-Browse icons at [icones.js.org](https://icones.js.org).
+Browse Lucide icons at [lucide.dev/icons](https://lucide.dev/icons).
+
+**Secondary: @nuxt/icon** (for icons not available in Lucide)
+
+Use `@nuxt/icon` only when Lucide doesn't have the icon you need. The `Icon` component is auto-imported.
+
+```vue
+<template>
+  <Icon name="tabler:brand-github" class="size-4" />
+  <Icon name="simple-icons:nuxtdotjs" />
+</template>
+```
+
+Install additional icon collections: `npm i -D @iconify-json/tabler @iconify-json/simple-icons`
+
+Browse all icons at [icones.js.org](https://icones.js.org).
+
+### Extending UI Components
+
+Files in `app/components/ui/` are shadcn-vue defaults. To customize behavior, **create wrapper components** in `app/components/` instead of modifying the originals.
+
+**Good** (extend with a wrapper component in `app/components/`):
+
+```vue
+<!-- app/components/SubmitButton.vue -->
+<script setup lang="ts">
+import { Loader2 } from 'lucide-vue-next'
+
+defineProps<{
+  loading?: boolean
+}>()
+</script>
+
+<template>
+  <Button type="submit" :disabled="loading">
+    <Loader2 v-if="loading" class="size-4 animate-spin" />
+    <slot />
+  </Button>
+</template>
+```
+
+**Bad** (modifying shadcn-vue defaults directly):
+
+```vue
+<!-- app/components/ui/button/Button.vue — DON'T DO THIS -->
+<script setup lang="ts">
+// Adding custom props/logic to the shadcn-vue default...
+import { Loader2 } from 'lucide-vue-next'
+
+defineProps<{
+  loading?: boolean  // ❌ Don't add custom props here
+}>()
+</script>
+```
+
+This keeps shadcn-vue components upgradable and your customizations isolated.
 
 ## Coding Style
 
