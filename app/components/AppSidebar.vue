@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { SidebarProps } from '~/components/ui/sidebar'
-import { LayoutDashboard } from 'lucide-vue-next'
+import { Building2 } from 'lucide-vue-next'
 
 defineOptions({ inheritAttrs: false })
 
@@ -13,18 +13,18 @@ const props = withDefaults(
 <template>
   <Sidebar v-bind="{ ...props, ...$attrs }">
     <SidebarHeader>
-      <div class="flex w-full items-center gap-2">
-        <NuxtLink
-          to="/app"
-          class="flex min-w-0 flex-1 items-center gap-2 font-semibold group-data-[collapsible=icon]:flex-none group-data-[collapsible=icon]:justify-center"
-        >
-          <span class="flex size-8 shrink-0 items-center justify-center rounded-md bg-sidebar-accent group-data-[collapsible=icon]:size-8">
-            <LayoutDashboard class="size-4" />
-          </span>
-          <span class="truncate group-data-[collapsible=icon]:hidden">App</span>
-        </NuxtLink>
-        <SidebarTrigger class="shrink-0" />
-      </div>
+      <NuxtLink
+        to="/app"
+        class="flex min-w-0 w-full items-center gap-2 font-semibold group-data-[collapsible=icon]:flex-none group-data-[collapsible=icon]:justify-center"
+      >
+        <span class="flex size-8 shrink-0 items-center justify-center rounded-md bg-sidebar-accent group-data-[collapsible=icon]:size-8">
+          <Building2 class="size-4" />
+        </span>
+        <span class="flex min-w-0 flex-1 flex-col gap-0.5 group-data-[collapsible=icon]:hidden">
+          <span class="truncate font-medium">Acme Inc</span>
+          <span class="truncate text-xs font-normal text-muted-background">Dashboard</span>
+        </span>
+      </NuxtLink>
     </SidebarHeader>
     <SidebarContent>
       <slot />

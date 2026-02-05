@@ -29,7 +29,7 @@ const { theme, toggleTheme } = useTheme()
 <template>
   <SidebarMenu>
     <SidebarMenuItem>
-      <DropdownMenu>
+      <DropdownMenu :modal="false">
         <DropdownMenuTrigger as-child>
           <SidebarMenuButton
             size="lg"
