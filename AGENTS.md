@@ -1,139 +1,67 @@
 # Repository Guidelines
 
-## Agent-Specific Notes
+## Scope
 
-- Keep changes small and focused.
-- Prefer updating `app/` for UI changes and `public/` for static assets.
-- Use `npm` for all package manager commands.
-- If asked to commit and nothing is staged, assume all current changes should be committed; if some changes are staged, only commit the staged set.
-- **Do not modify files in `app/components/ui/`** without explicit user permission — these are shadcn-vue defaults. Extend them instead (see [Extending UI Components](#extending-ui-components)).
+This guide applies to the whole repository. Default to minimal, safe edits that preserve existing patterns.
 
-## Project Structure
+## Hard Rules
 
-| Path | Description |
-|------|-------------|
-| `app/` | Nuxt app source (`app/app.vue` is the root component) |
-| `app/components/ui/` | shadcn-vue UI components (auto-imported) |
-| `app/pages/` | File-based routing pages |
-| `public/` | Static assets served as-is (e.g., `favicon.ico`, `robots.txt`) |
-| `nuxt.config.ts` | Nuxt configuration |
-| `eslint.config.mjs` | Linting configuration |
-| `package.json` | Scripts and dependencies |
+- MUST keep changes small and focused.
+- MUST use `npm` for package manager commands.
+- MUST prefer `app/` for UI work and `public/` for static assets.
+- MUST use TypeScript/ESM conventions already used in the repo.
+- DO NOT add Prettier; formatting is handled by ESLint Stylistic.
+- DO NOT modify `app/components/ui/` without explicit user permission.
+- If asked to commit:
+  - nothing staged -> commit all current changes
+  - some files staged -> commit staged files only
 
 ## Commands
 
 | Command | Description |
 |---------|-------------|
 | `npm install` | Install dependencies |
-| `npm run dev` | Run dev server at `http://localhost:3000` |
+| `npm run dev` | Start Nuxt dev server at `http://localhost:7777` |
 | `npm run build` | Build for production |
-| `npm run preview` | Preview production build locally |
-| `npm run generate` | Generate static site output |
+| `npm run preview` | Preview production build |
+| `npm run generate` | Generate static output |
+| `npm run lint` | Run ESLint with `--fix` (this command can modify files) |
 
-## UI Components
+## UI and shadcn-vue Rules
 
-This project uses **shadcn-vue**. To add a new component:
+- Use shadcn-vue as provided; keep base components upgradable.
+- Components under `app/components/ui/` are auto-imported by Nuxt.
+- Prefer `lucide-vue-next` icons first; use `@nuxt/icon` only if needed.
+- For custom behavior, create wrappers in `app/components/`.
 
-```bash
-npx shadcn-vue@latest add <component>
-```
-
-### Themes
-
-To install a new shadcn theme:
-
-```bash
-npx shadcn-vue@latest add <theme-url>
-```
-
-### Auto-imports
-
-Components in `app/components/ui/` are auto-imported by Nuxt. Do **not** explicitly import them.
-
-**Good** (no imports needed):
+### Auto-imports (good vs bad)
 
 ```vue
+<!-- Good: no explicit ui imports -->
 <template>
   <Card>
     <CardHeader>
       <CardTitle>Hello</CardTitle>
     </CardHeader>
-    <CardFooter>
-      <Button>Click me</Button>
-    </CardFooter>
   </Card>
 </template>
 ```
 
-**Bad** (unnecessary explicit imports):
-
 ```vue
-<template>
-  <Card>
-    <CardHeader>
-      <CardTitle>Hello</CardTitle>
-    </CardHeader>
-    <CardFooter>
-      <Button>Click me</Button>
-    </CardFooter>
-  </Card>
-</template>
-
+<!-- Bad: unnecessary explicit imports -->
 <script setup lang="ts">
-import { Card, CardFooter, CardHeader, CardTitle } from '~/components/ui/card'
-import { Button } from '~/components/ui/button'
+import { Card, CardHeader, CardTitle } from '~/components/ui/card'
 </script>
 ```
 
-### Icons
-
-This project uses **lucide-vue-next** as the primary icon library (consistent with shadcn-vue).
-
-**Primary: lucide-vue-next**
+### Wrapper Pattern (good vs bad)
 
 ```vue
-<script setup lang="ts">
-import { Sun, Moon, ChevronRight } from 'lucide-vue-next'
-</script>
-
-<template>
-  <Sun class="size-4" />
-  <Moon :size="20" />
-  <ChevronRight class="ml-auto" />
-</template>
-```
-
-Browse Lucide icons at [lucide.dev/icons](https://lucide.dev/icons).
-
-**Secondary: @nuxt/icon** (for icons not available in Lucide)
-
-Use `@nuxt/icon` only when Lucide doesn't have the icon you need. The `Icon` component is auto-imported.
-
-```vue
-<template>
-  <Icon name="tabler:brand-github" class="size-4" />
-  <Icon name="simple-icons:nuxtdotjs" />
-</template>
-```
-
-Install additional icon collections: `npm i -D @iconify-json/tabler @iconify-json/simple-icons`
-
-Browse all icons at [icones.js.org](https://icones.js.org).
-
-### Extending UI Components
-
-Files in `app/components/ui/` are shadcn-vue defaults. To customize behavior, **create wrapper components** in `app/components/` instead of modifying the originals.
-
-**Good** (extend with a wrapper component in `app/components/`):
-
-```vue
-<!-- app/components/SubmitButton.vue -->
+<!-- Good: app/components/SubmitButton.vue -->
 <script setup lang="ts">
 import { Loader2 } from 'lucide-vue-next'
 
-defineProps<{
-  loading?: boolean
-}>()
+defineProps<{ loading?: boolean }>()
 </script>
 
 <template>
@@ -144,82 +72,63 @@ defineProps<{
 </template>
 ```
 
-**Bad** (modifying shadcn-vue defaults directly):
-
 ```vue
-<!-- app/components/ui/button/Button.vue — DON'T DO THIS -->
+<!-- Bad: editing a shadcn default directly -->
+<!-- app/components/ui/button/Button.vue -->
 <script setup lang="ts">
-// Adding custom props/logic to the shadcn-vue default...
-import { Loader2 } from 'lucide-vue-next'
-
-defineProps<{
-  loading?: boolean  // ❌ Don't add custom props here
-}>()
+defineProps<{ loading?: boolean }>()
 </script>
 ```
 
-This keeps shadcn-vue components upgradable and your customizations isolated.
-
-## Coding Style
-
-- **Language**: TypeScript/ESM (`"type": "module"` in `package.json`)
-- **Linting**: ESLint via `eslint.config.mjs`
-- **Formatting**: ESLint (Stylistic) only — do not use Prettier
-- **Naming**:
-  - `PascalCase` for component file names and tags
-  - `kebab-case` for in-DOM templates and route file names
-- **Event Handlers**: Prefer function declarations for event handlers like button clicks.
-
-**Good**:
+### Event Handlers (good vs bad)
 
 ```vue
-<template>
-  <Button @click="handleClick">Click me</Button>
-</template>
-
+<!-- Good -->
 <script setup lang="ts">
 function handleClick() {
   // Handle click
 }
 </script>
+
+<template>
+  <Button @click="handleClick">Click me</Button>
+</template>
 ```
 
-**Bad**:
-
 ```vue
+<!-- Bad -->
 <template>
   <Button @click="() => handleClick()">Click me</Button>
 </template>
 ```
 
-## Commit Guidelines
+## Verification Policy
 
-Conventional Commits with emojis: `type(scope): emoji message`
+- Run verification after finishing edits, not mid-edit.
+- Default verification: `npm run lint`.
+- `npm run lint` uses `--fix`; review file changes after it runs.
+- Run `npm run build` when changes affect config, routing, modules, dependencies, layouts, or cross-cutting app behavior.
+- `npm run build` is optional for tiny local UI tweaks already validated in dev.
+- If any check is skipped, report what was skipped and why.
 
-| Type | Emoji | Description |
-|------|-------|-------------|
-| `feat` | ✨ | New feature |
-| `fix` | 🐛 | Bug fix |
-| `docs` | 📝 | Documentation |
-| `style` | 🎨 | Code style/formatting |
-| `refactor` | ♻️ | Code refactoring |
-| `perf` | ⚡ | Performance |
-| `test` | ✅ | Tests |
-| `build` | 🏗️ | Build system |
-| `ci` | 🤖 | CI/CD |
-| `chore` | 🔧 | Maintenance |
-| `revert` | ⏪ | Revert changes |
+## Execution Checklist
+
+1. Inspect relevant files and current patterns.
+2. Make minimal, targeted edits.
+3. Run verification at the end of coding.
+4. Report changed files, validation run, and any skipped checks.
+
+## Commit Rules
+
+- Use Conventional Commits with emojis: `type(scope): emoji message`.
+- Common types:
+  - `feat`: ✨
+  - `fix`: 🐛
+  - `docs`: 📝
+  - `refactor`: ♻️
+  - `test`: ✅
+  - `chore`: 🔧
 
 Examples:
 - `feat(ui): ✨ add hero section`
 - `fix(nav): 🐛 correct mobile menu toggle`
-
-## Pull Request Guidelines
-
-- Short summary describing changes
-- UI screenshots when relevant
-- Link related issues/context
-
-## Testing
-
-No test framework configured yet. If adding tests, document the framework and add scripts in `package.json`.
