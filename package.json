@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "build": "nuxt build",
-    "dev": "nuxt dev",
+    "dev": "nuxt dev --port 7777",
     "generate": "nuxt generate",
     "lint": "eslint . --ext .vue,.js,.ts --fix",
     "preview": "nuxt preview",
