@@ -188,6 +188,13 @@
 }
 
 @layer base {
+  html.app-shell-lock,
+  body.app-shell-lock {
+    height: 100%;
+    overflow: hidden;
+    overscroll-behavior-y: none;
+  }
+
   * {
     @apply border-border outline-ring/50;
   }
