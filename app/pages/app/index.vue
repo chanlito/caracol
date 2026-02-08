@@ -1,3 +1,9 @@
+<script setup lang="ts">
+useHead({
+  title: 'Dashboard',
+})
+</script>
+
 <template>
   <div>
     <h1 class="mb-2 text-2xl font-semibold">

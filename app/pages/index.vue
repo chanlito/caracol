@@ -10,6 +10,38 @@ import {
   Workflow,
 } from 'lucide-vue-next'
 
+const appConfig = useAppConfig()
+const seoTitle = computed(() => `${appConfig.titles.home} · ${appConfig.branding.name}`)
+const seoDescription = computed(
+  () => `${appConfig.branding.name} helps teams build project tooling with clean UI patterns and practical guardrails.`,
+)
+
+useHead({
+  title: seoTitle,
+  meta: [
+    {
+      name: 'description',
+      content: seoDescription,
+    },
+    {
+      property: 'og:title',
+      content: seoTitle,
+    },
+    {
+      property: 'og:description',
+      content: seoDescription,
+    },
+    {
+      name: 'twitter:title',
+      content: seoTitle,
+    },
+    {
+      name: 'twitter:description',
+      content: seoDescription,
+    },
+  ],
+})
+
 const capabilities = [
   {
     icon: Hammer,
@@ -57,13 +89,13 @@ const stack = [
         variant="secondary"
         class="mb-4 rounded-full px-3 py-1 text-xs uppercase tracking-[0.12em]"
       >
-        Caracol Project
+        {{ appConfig.branding.name }} Project
       </Badge>
       <h1 class="text-3xl font-semibold leading-tight sm:text-4xl">
         One project space for tools, workflows, and operations.
       </h1>
       <p class="mt-4 max-w-3xl text-muted-foreground">
-        Caracol is focused on helping teams build project tooling with a clean UI, typed patterns, and practical
+        {{ appConfig.branding.name }} is focused on helping teams build project tooling with a clean UI, typed patterns, and practical
         guardrails. This repo contains the app shell, admin surface, and shared UI foundations.
       </p>
       <div class="mt-6 flex flex-wrap gap-3">

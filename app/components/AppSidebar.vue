@@ -8,6 +8,8 @@ const props = withDefaults(
   defineProps<SidebarProps>(),
   { side: 'left', variant: 'inset', collapsible: 'icon' },
 )
+
+const appConfig = useAppConfig()
 </script>
 
 <template>
@@ -21,7 +23,7 @@ const props = withDefaults(
           <Building2 class="size-4" />
         </span>
         <span class="flex min-w-0 flex-1 flex-col gap-0.5 group-data-[collapsible=icon]:hidden">
-          <span class="truncate font-medium">Acme Inc</span>
+          <span class="truncate font-medium">{{ appConfig.branding.name }}</span>
           <span class="truncate text-xs font-normal text-muted-background">Dashboard</span>
         </span>
       </NuxtLink>

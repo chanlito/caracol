@@ -12,6 +12,7 @@ This guide applies to the whole repository. Default to minimal, safe edits that 
 - MUST use TypeScript/ESM conventions already used in the repo.
 - DO NOT add Prettier; formatting is handled by ESLint Stylistic.
 - DO NOT modify `app/components/ui/` without explicit user permission.
+- MUST set `useHead({ title: '...' })` for every new page in `app/pages/**`.
 - If asked to commit:
   - nothing staged -> commit all current changes
   - some files staged -> commit staged files only

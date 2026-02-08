@@ -1,6 +1,7 @@
 <script setup lang="ts">
 const route = useRoute()
 const isHome = computed(() => route.path === '/')
+const appConfig = useAppConfig()
 </script>
 
 <template>
@@ -11,7 +12,7 @@ const isHome = computed(() => route.path === '/')
           to="/"
           class="font-semibold"
         >
-          Caracol
+          {{ appConfig.branding.name }}
         </NuxtLink>
         <nav class="flex items-center gap-1 sm:gap-2">
           <template v-if="isHome">
