@@ -41,6 +41,8 @@ const Sidebar = {
 
       if (sidebarValueValid(stored)) {
         this.el.checked = stored === SIDEBAR_EXPANDED
+      } else {
+        this.el.checked = true
       }
 
       setSidebarStateAttr(this.el.checked ? SIDEBAR_EXPANDED : SIDEBAR_COLLAPSED)
