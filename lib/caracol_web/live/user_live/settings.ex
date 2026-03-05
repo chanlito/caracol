@@ -8,7 +8,11 @@ defmodule CaracolWeb.UserLive.Settings do
   @impl true
   def render(assigns) do
     ~H"""
-    <Layouts.app flash={@flash} current_scope={@current_scope}>
+    <Layouts.app_shell
+      flash={@flash}
+      current_scope={@current_scope}
+      current_path={~p"/users/settings"}
+    >
       <div class="text-center">
         <.header>
           Account Settings
@@ -65,7 +69,7 @@ defmodule CaracolWeb.UserLive.Settings do
           Save Password
         </.button>
       </.form>
-    </Layouts.app>
+    </Layouts.app_shell>
     """
   end
 

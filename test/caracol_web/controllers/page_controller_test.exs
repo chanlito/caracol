@@ -33,8 +33,10 @@ defmodule CaracolWeb.PageControllerTest do
     response = html_response(conn, 200)
 
     assert response =~ ~s(id="home-theme-dropdown")
-    assert response =~ user.email
+    assert response =~ "Open app"
+    assert response =~ ~s(href="/app")
     assert response =~ "Log out"
+    refute response =~ user.email
     refute response =~ "Register now"
   end
 end
