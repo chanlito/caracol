@@ -37,6 +37,21 @@
         window.addEventListener("phx:set-theme", (e) => setTheme(e.target.dataset.phxTheme));
       })();
     </script>
+    <script>
+      (() => {
+        let sidebarState = null;
+
+        try {
+          sidebarState = localStorage.getItem("phx:sidebar-state");
+        } catch {
+          sidebarState = null;
+        }
+
+        if (sidebarState === "expanded" || sidebarState === "collapsed") {
+          document.documentElement.setAttribute("data-sidebar-state", sidebarState);
+        }
+      })();
+    </script>
   </head>
   <body>
     {@inner_content}

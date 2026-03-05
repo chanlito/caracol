@@ -82,27 +82,116 @@ defmodule CaracolWeb.Layouts do
   slot :inner_block, required: true
 
   def app_shell(assigns) do
+    assigns = assign(assigns, :user_initials, user_initials(assigns.current_scope.user.email))
+
     ~H"""
     <div class="drawer min-h-screen bg-base-200 lg:drawer-open">
-      <input id="app-shell-drawer" type="checkbox" class="drawer-toggle" />
+      <input id="app-shell-drawer" type="checkbox" class="drawer-toggle" phx-hook="Sidebar" />
 
       <div class="drawer-content flex min-h-screen flex-col">
         <header class="sticky top-0 z-20 border-b border-base-300 bg-base-100/95 backdrop-blur">
-          <div class="flex items-center justify-between px-4 py-3 sm:px-6">
-            <label for="app-shell-drawer" class="btn btn-square btn-ghost lg:hidden">
-              <.icon name="hero-bars-3" class="size-5" />
-            </label>
-            <div class="text-sm font-semibold text-base-content/75">Application</div>
-            <div id="app-user-menu" class="dropdown dropdown-end">
-              <button type="button" tabindex="0" class="btn btn-sm btn-ghost gap-2">
-                <.icon name="hero-user-circle" class="size-5" />
-                <span class="hidden max-w-56 truncate sm:inline">
-                  {@current_scope.user.email}
+          <div class="grid grid-cols-[auto_1fr_auto] items-center px-4 py-3 sm:px-6">
+            <div class="flex items-center gap-2">
+              <label
+                for="app-shell-drawer"
+                id="app-shell-mobile-toggle"
+                aria-label="open sidebar"
+                class="btn btn-square btn-ghost lg:hidden"
+              >
+                <.icon name="hero-bars-3" class="size-5" />
+              </label>
+              <label
+                for="app-shell-drawer"
+                id="app-shell-desktop-toggle"
+                aria-label="toggle sidebar"
+                class="btn btn-square btn-ghost hidden lg:inline-flex"
+              >
+                <.icon name="hero-bars-3-center-left" class="size-5" />
+              </label>
+            </div>
+            <div class="justify-self-center text-sm font-semibold text-base-content/75">
+              Application
+            </div>
+            <div aria-hidden="true" class="w-10 lg:w-20"></div>
+          </div>
+        </header>
+
+        <main class="flex-1 px-4 py-6 sm:px-6 lg:px-8">
+          {render_slot(@inner_block)}
+        </main>
+      </div>
+
+      <div class="drawer-side z-30 lg:overflow-visible">
+        <label for="app-shell-drawer" class="drawer-overlay"></label>
+        <aside
+          id="app-shell-sidebar"
+          class="flex h-full min-h-full w-72 flex-col border-r border-base-300 bg-base-100 px-4 py-5 transition-[width,padding] duration-200 ease-out sm:px-5"
+        >
+          <.link
+            navigate={~p"/app"}
+            class="app-shell-brand-link inline-flex h-10 w-full items-center gap-2 rounded-lg px-3 py-0 text-lg font-bold tracking-tight transition hover:bg-base-200 hover:text-primary"
+          >
+            <.icon name="hero-command-line" class="size-5 text-primary" />
+            <span class="app-shell-brand-label">Caracol</span>
+          </.link>
+
+          <nav class="mt-8">
+            <ul class="menu w-full gap-2 p-0">
+              <li class="w-full">
+                <.link
+                  id="app-nav-home"
+                  navigate={~p"/app"}
+                  class={nav_link_classes(@current_path == ~p"/app")}
+                  data-tip="Home"
+                >
+                  <.icon name="hero-home" class="size-4 shrink-0" />
+                  <span class="app-shell-nav-label">Home</span>
+                </.link>
+              </li>
+              <li class="w-full">
+                <.link
+                  id="app-nav-playground"
+                  navigate={~p"/playground"}
+                  class={nav_link_classes(@current_path == ~p"/playground")}
+                  data-tip="Playground"
+                >
+                  <.icon name="hero-beaker" class="size-4 shrink-0" />
+                  <span class="app-shell-nav-label">Playground</span>
+                </.link>
+              </li>
+              <li class="w-full">
+                <.link
+                  id="app-nav-settings"
+                  navigate={~p"/users/settings"}
+                  class={nav_link_classes(@current_path == ~p"/users/settings")}
+                  data-tip="Settings"
+                >
+                  <.icon name="hero-cog-6-tooth" class="size-4 shrink-0" />
+                  <span class="app-shell-nav-label">Settings</span>
+                </.link>
+              </li>
+            </ul>
+          </nav>
+
+          <div id="app-sidebar-account" class="mt-auto border-t border-base-300 pt-4">
+            <div id="app-sidebar-user-menu" class="dropdown dropdown-top w-full">
+              <button
+                type="button"
+                tabindex="0"
+                aria-label="Open account menu"
+                class="app-shell-account-trigger inline-flex h-10 w-full items-center gap-3 rounded-lg px-3 text-left transition hover:bg-base-200"
+              >
+                <span class="app-shell-account-avatar inline-flex size-8 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-semibold text-primary-content">
+                  {@user_initials}
+                </span>
+                <span class="app-shell-account-label min-w-0 text-sm font-medium text-base-content/85">
+                  <span class="block truncate">{@current_scope.user.email}</span>
                 </span>
               </button>
+
               <ul
                 tabindex="0"
-                class="menu dropdown-content z-20 mt-2 w-56 rounded-box border border-base-300 bg-base-100 p-2 shadow"
+                class="menu dropdown-content z-20 mb-2 w-56 rounded-box border border-base-300 bg-base-100 p-2 shadow"
               >
                 <li class="menu-title px-3 py-2 text-[0.7rem] uppercase tracking-[0.16em] text-base-content/60">
                   Account
@@ -128,57 +217,6 @@ defmodule CaracolWeb.Layouts do
               </ul>
             </div>
           </div>
-        </header>
-
-        <main class="flex-1 px-4 py-6 sm:px-6 lg:px-8">
-          {render_slot(@inner_block)}
-        </main>
-      </div>
-
-      <div class="drawer-side z-30">
-        <label for="app-shell-drawer" class="drawer-overlay"></label>
-        <aside
-          id="app-shell-sidebar"
-          class="min-h-full w-72 border-r border-base-300 bg-base-100 px-4 py-5 sm:px-5"
-        >
-          <.link
-            navigate={~p"/app"}
-            class="inline-flex items-center gap-2 text-lg font-bold tracking-tight transition hover:text-primary"
-          >
-            <.icon name="hero-command-line" class="size-5 text-primary" /> Caracol
-          </.link>
-
-          <nav class="mt-8">
-            <ul class="menu gap-1 p-0">
-              <li>
-                <.link
-                  id="app-nav-home"
-                  navigate={~p"/app"}
-                  class={nav_link_classes(@current_path == ~p"/app")}
-                >
-                  <.icon name="hero-home" class="size-4" /> Home
-                </.link>
-              </li>
-              <li>
-                <.link
-                  id="app-nav-playground"
-                  navigate={~p"/playground"}
-                  class={nav_link_classes(@current_path == ~p"/playground")}
-                >
-                  <.icon name="hero-beaker" class="size-4" /> Playground
-                </.link>
-              </li>
-              <li>
-                <.link
-                  id="app-nav-settings"
-                  navigate={~p"/users/settings"}
-                  class={nav_link_classes(@current_path == ~p"/users/settings")}
-                >
-                  <.icon name="hero-cog-6-tooth" class="size-4" /> Settings
-                </.link>
-              </li>
-            </ul>
-          </nav>
         </aside>
       </div>
     </div>
@@ -232,11 +270,36 @@ defmodule CaracolWeb.Layouts do
 
   defp nav_link_classes(active?) do
     [
-      "inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition",
+      "app-shell-nav-link inline-flex w-full min-h-10 items-center gap-2 rounded-lg px-3 py-2.5 text-sm font-medium transition",
       if(active?,
         do: "bg-primary text-primary-content shadow-sm",
         else: "text-base-content/80 hover:bg-base-200 hover:text-base-content"
       )
     ]
+  end
+
+  defp user_initials(nil), do: "U"
+
+  defp user_initials(email) do
+    email
+    |> String.split("@", parts: 2)
+    |> List.first()
+    |> case do
+      nil ->
+        "U"
+
+      local_part ->
+        local_part
+        |> String.split(~r/[._-]+/, trim: true)
+        |> Enum.map(&String.slice(&1, 0, 1))
+        |> Enum.reject(&(&1 in [nil, ""]))
+        |> Enum.take(2)
+        |> Enum.join()
+        |> String.upcase()
+        |> case do
+          "" -> "U"
+          initials -> initials
+        end
+    end
   end
 end

@@ -102,4 +102,35 @@
 /* Make LiveView wrapper divs transparent for layout */
 [data-phx-session], [data-phx-teleported-src] { display: contents }
 
+@media (min-width: 64rem) {
+  :root[data-sidebar-state="collapsed"] #app-shell-drawer:not(:checked) ~ .drawer-side {
+    overflow: visible;
+  }
+
+  :root[data-sidebar-state="collapsed"] #app-shell-drawer:not(:checked) ~ .drawer-side #app-shell-sidebar {
+    width: 5rem;
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+  }
+
+  :root[data-sidebar-state="collapsed"] #app-shell-drawer:not(:checked) ~ .drawer-side #app-shell-sidebar :is(.app-shell-brand-link, .app-shell-nav-link, .app-shell-account-trigger) {
+    justify-content: center;
+  }
+
+  :root[data-sidebar-state="collapsed"] #app-shell-drawer:not(:checked) ~ .drawer-side #app-shell-sidebar :is(.app-shell-nav-link, .app-shell-brand-link) {
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+  }
+
+  :root[data-sidebar-state="collapsed"] #app-shell-drawer:not(:checked) ~ .drawer-side #app-shell-sidebar :is(.app-shell-brand-label, .app-shell-nav-label, .app-shell-account-label) {
+    display: none;
+  }
+
+  :root[data-sidebar-state="collapsed"] #app-shell-drawer:not(:checked) ~ .drawer-side #app-shell-sidebar .app-shell-account-trigger {
+    gap: 0;
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+  }
+}
+
 /* This file is for your main application CSS */
