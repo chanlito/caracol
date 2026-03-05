@@ -179,17 +179,58 @@ defmodule Caracol.Accounts do
   def subscribe_user_sessions(_scope), do: :ok
 
   @doc """
-  Lists active session tokens for the current scoped user.
+  Lists session tokens for the current scoped user.
+
+  ## Options
+
+    * `:include_expired` - includes expired sessions when true (default: `true`)
+    * `:limit` - limits the number of rows returned
+    * `:offset` - skips rows before returning results (default: `0`)
   """
-  def list_user_sessions(%Scope{user: %User{id: user_id}}) do
-    from(t in UserToken,
-      where: t.user_id == ^user_id and t.context == "session",
-      order_by: [desc: t.inserted_at]
-    )
+  def list_user_sessions(scope, opts \\ [])
+
+  def list_user_sessions(%Scope{user: %User{id: user_id}}, opts) when is_list(opts) do
+    user_id
+    |> user_sessions_query(opts)
+    |> maybe_offset(Keyword.get(opts, :offset, 0))
+    |> maybe_limit(Keyword.get(opts, :limit))
     |> Repo.all()
   end
 
-  def list_user_sessions(_scope), do: []
+  def list_user_sessions(_scope, _opts), do: []
+
+  @doc """
+  Counts session tokens for the current scoped user.
+
+  Accepts the same filtering options as `list_user_sessions/2`.
+  """
+  def count_user_sessions(scope, opts \\ [])
+
+  def count_user_sessions(%Scope{user: %User{id: user_id}}, opts) when is_list(opts) do
+    user_id
+    |> user_sessions_base_query(opts)
+    |> select([t], count(t.id))
+    |> Repo.one()
+  end
+
+  def count_user_sessions(_scope, _opts), do: 0
+
+  @doc """
+  Gets a session token by id for the current scoped user.
+
+  Accepts the same filtering options as `list_user_sessions/2`.
+  """
+  def get_user_session(scope, session_id, opts \\ [])
+
+  def get_user_session(%Scope{user: %User{id: user_id}}, session_id, opts)
+      when is_binary(session_id) and is_list(opts) do
+    user_id
+    |> user_sessions_base_query(opts)
+    |> where([t], t.id == ^session_id)
+    |> Repo.one()
+  end
+
+  def get_user_session(_scope, _session_id, _opts), do: nil
 
   @doc """
   Generates a session token.
@@ -366,4 +407,38 @@ defmodule Caracol.Accounts do
   end
 
   defp user_sessions_topic(user_id), do: "users_sessions:changes:#{user_id}"
+
+  defp user_sessions_query(user_id, opts) do
+    user_id
+    |> user_sessions_base_query(opts)
+    |> order_by([t], desc: t.inserted_at, desc: t.id)
+  end
+
+  defp user_sessions_base_query(user_id, opts) do
+    query =
+      from(t in UserToken,
+        where: t.user_id == ^user_id and t.context == "session"
+      )
+
+    if Keyword.get(opts, :include_expired, true) do
+      query
+    else
+      valid_since =
+        DateTime.add(DateTime.utc_now(:second), -UserToken.session_validity_in_days(), :day)
+
+      from(t in query, where: t.inserted_at > ^valid_since)
+    end
+  end
+
+  defp maybe_offset(query, offset) when is_integer(offset) and offset > 0 do
+    offset(query, ^offset)
+  end
+
+  defp maybe_offset(query, _offset), do: query
+
+  defp maybe_limit(query, limit) when is_integer(limit) and limit > 0 do
+    limit(query, ^limit)
+  end
+
+  defp maybe_limit(query, _limit), do: query
 end

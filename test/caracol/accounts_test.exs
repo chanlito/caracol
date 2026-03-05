@@ -252,6 +252,87 @@ defmodule Caracol.AccountsTest do
     end
   end
 
+  describe "list_user_sessions/2" do
+    test "applies limit and offset in descending inserted_at order" do
+      user = user_fixture()
+      scope = user_scope_fixture(user)
+
+      for _ <- 1..5 do
+        Accounts.generate_user_session_token(user)
+      end
+
+      all_session_ids =
+        scope
+        |> Accounts.list_user_sessions()
+        |> Enum.map(& &1.id)
+
+      paged_session_ids =
+        scope
+        |> Accounts.list_user_sessions(limit: 2, offset: 1)
+        |> Enum.map(& &1.id)
+
+      assert paged_session_ids == all_session_ids |> Enum.drop(1) |> Enum.take(2)
+    end
+
+    test "excludes expired sessions when include_expired is false" do
+      user = user_fixture()
+      scope = user_scope_fixture(user)
+      active_token = Accounts.generate_user_session_token(user)
+      expired_token = Accounts.generate_user_session_token(user)
+      offset_user_token(expired_token, -20, :day)
+
+      %UserToken{id: active_id} = Repo.get_by!(UserToken, token: active_token)
+      %UserToken{id: expired_id} = Repo.get_by!(UserToken, token: expired_token)
+
+      session_ids =
+        scope
+        |> Accounts.list_user_sessions(include_expired: false)
+        |> Enum.map(& &1.id)
+
+      assert active_id in session_ids
+      refute expired_id in session_ids
+    end
+  end
+
+  describe "count_user_sessions/2" do
+    test "returns counts using the same filters as list_user_sessions/2" do
+      user = user_fixture()
+      other_user = user_fixture()
+      scope = user_scope_fixture(user)
+      _active_token = Accounts.generate_user_session_token(user)
+      expired_token = Accounts.generate_user_session_token(user)
+      _other_user_token = Accounts.generate_user_session_token(other_user)
+      offset_user_token(expired_token, -20, :day)
+
+      assert Accounts.count_user_sessions(scope) == 2
+      assert Accounts.count_user_sessions(scope, include_expired: false) == 1
+    end
+  end
+
+  describe "get_user_session/3" do
+    test "returns scoped session by id and respects include_expired filter" do
+      user = user_fixture()
+      other_user = user_fixture()
+      scope = user_scope_fixture(user)
+      _other_scope = user_scope_fixture(other_user)
+      active_token = Accounts.generate_user_session_token(user)
+      expired_token = Accounts.generate_user_session_token(user)
+      other_token = Accounts.generate_user_session_token(other_user)
+      offset_user_token(expired_token, -20, :day)
+
+      %UserToken{id: active_id} = Repo.get_by!(UserToken, token: active_token)
+      %UserToken{id: expired_id} = Repo.get_by!(UserToken, token: expired_token)
+      %UserToken{id: other_id} = Repo.get_by!(UserToken, token: other_token)
+
+      assert %UserToken{id: ^active_id} =
+               Accounts.get_user_session(scope, active_id, include_expired: false)
+
+      assert is_nil(Accounts.get_user_session(scope, expired_id, include_expired: false))
+      assert %UserToken{id: ^expired_id} = Accounts.get_user_session(scope, expired_id)
+      assert is_nil(Accounts.get_user_session(scope, other_id))
+    end
+  end
+
   describe "generate_user_session_token/2" do
     setup do
       %{user: user_fixture()}

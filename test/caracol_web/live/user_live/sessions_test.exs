@@ -90,6 +90,177 @@ defmodule CaracolWeb.UserLive.SessionsTest do
       refute has_element?(lv, "#session-#{expired_id}")
     end
 
+    test "renders first page with at most 10 rows and pagination metadata", %{conn: conn} do
+      user = user_fixture()
+
+      for _ <- 1..15 do
+        Accounts.generate_user_session_token(user)
+      end
+
+      {:ok, lv, _html} =
+        conn
+        |> log_in_user(user)
+        |> live(~p"/users/sessions")
+
+      session_ids = session_ids_for_user(user)
+      first_page_ids = Enum.take(session_ids, 10)
+      second_page_first_id = Enum.at(session_ids, 10)
+      total_pages = div(length(session_ids) + 9, 10)
+
+      assert has_element?(lv, "#sessions-pagination")
+      assert has_element?(lv, "#sessions-page-label", "Page 1 of #{total_pages}")
+      assert has_element?(lv, "#sessions-total-count", "#{length(session_ids)} total sessions")
+      assert has_element?(lv, "#sessions-page-prev[disabled]")
+      refute has_element?(lv, "#sessions-page-next[disabled]")
+
+      for session_id <- first_page_ids do
+        assert has_element?(lv, "#session-#{session_id}")
+      end
+
+      refute has_element?(lv, "#session-#{second_page_first_id}")
+    end
+
+    test "prev and next pagination controls update URL and rows", %{conn: conn} do
+      user = user_fixture()
+
+      for _ <- 1..12 do
+        Accounts.generate_user_session_token(user)
+      end
+
+      {:ok, lv, _html} =
+        conn
+        |> log_in_user(user)
+        |> live(~p"/users/sessions")
+
+      session_ids = session_ids_for_user(user)
+      page_1_id = hd(session_ids)
+      page_2_id = Enum.at(session_ids, 10)
+
+      assert has_element?(lv, "#session-#{page_1_id}")
+      refute has_element?(lv, "#session-#{page_2_id}")
+
+      lv
+      |> element("#sessions-page-next")
+      |> render_click()
+
+      assert_patch(lv, ~p"/users/sessions?page=2")
+      assert has_element?(lv, "#session-#{page_2_id}")
+      refute has_element?(lv, "#session-#{page_1_id}")
+
+      lv
+      |> element("#sessions-page-prev")
+      |> render_click()
+
+      assert_patch(lv, ~p"/users/sessions")
+      assert has_element?(lv, "#session-#{page_1_id}")
+      refute has_element?(lv, "#session-#{page_2_id}")
+    end
+
+    test "realtime session create and revoke keeps current page when still valid", %{conn: conn} do
+      user = user_fixture()
+
+      for _ <- 1..11 do
+        Accounts.generate_user_session_token(user)
+      end
+
+      {:ok, lv, _html} =
+        conn
+        |> log_in_user(user)
+        |> live(~p"/users/sessions")
+
+      lv
+      |> element("#sessions-page-next")
+      |> render_click()
+
+      assert_patch(lv, ~p"/users/sessions?page=2")
+
+      _new_session_token = Accounts.generate_user_session_token(user)
+      session_ids = session_ids_for_user(user)
+      revoke_session_id = Enum.at(session_ids, 1)
+
+      assert {:ok, _revoked} =
+               Accounts.revoke_user_session(user_scope_fixture(user), revoke_session_id)
+
+      _ = :sys.get_state(lv.pid)
+
+      expected_page_2_ids = user |> session_ids_for_user() |> Enum.drop(10)
+      assert expected_page_2_ids != []
+      assert has_element?(lv, "#sessions-page-label", "Page 2 of 2")
+      assert has_element?(lv, "#session-#{hd(expected_page_2_ids)}")
+    end
+
+    test "realtime revoke clamps back to last available page", %{conn: conn} do
+      user = user_fixture()
+
+      for _ <- 1..10 do
+        Accounts.generate_user_session_token(user)
+      end
+
+      {:ok, lv, _html} =
+        conn
+        |> log_in_user(user)
+        |> live(~p"/users/sessions")
+
+      lv
+      |> element("#sessions-page-next")
+      |> render_click()
+
+      assert_patch(lv, ~p"/users/sessions?page=2")
+
+      session_ids = session_ids_for_user(user)
+      only_page_2_session_id = Enum.at(session_ids, 10)
+
+      assert {:ok, _revoked} =
+               Accounts.revoke_user_session(user_scope_fixture(user), only_page_2_session_id)
+
+      _ = :sys.get_state(lv.pid)
+      assert_patch(lv, ~p"/users/sessions")
+      assert has_element?(lv, "#sessions-page-label", "Page 1 of 1")
+      refute has_element?(lv, "#session-#{only_page_2_session_id}")
+    end
+
+    test "toggle expired updates paginated counts", %{conn: conn} do
+      user = user_fixture()
+
+      for _ <- 1..9 do
+        Accounts.generate_user_session_token(user)
+      end
+
+      expired_ids =
+        for _ <- 1..4 do
+          token = Accounts.generate_user_session_token(user)
+          offset_user_token(token, -20, :day)
+          Repo.get_by!(UserToken, token: token).id
+        end
+
+      {:ok, lv, _html} =
+        conn
+        |> log_in_user(user)
+        |> live(~p"/users/sessions")
+
+      scope = user_scope_fixture(user)
+      active_total = Accounts.count_user_sessions(scope, include_expired: false)
+      all_total = Accounts.count_user_sessions(scope)
+
+      assert has_element?(lv, "#sessions-total-count", "#{active_total} total sessions")
+      assert has_element?(lv, "#sessions-page-label", "Page 1 of 1")
+
+      lv
+      |> element("#sessions-toggle-expired")
+      |> render_click()
+
+      assert has_element?(lv, "#sessions-toggle-expired", "Hide expired")
+      assert has_element?(lv, "#sessions-total-count", "#{all_total} total sessions")
+      assert has_element?(lv, "#sessions-page-label", "Page 1 of 2")
+
+      lv
+      |> element("#sessions-page-next")
+      |> render_click()
+
+      assert_patch(lv, ~p"/users/sessions?page=2")
+      assert has_element?(lv, "#session-expired-#{hd(expired_ids)}")
+    end
+
     test "updates list in realtime when a new session is created", %{conn: conn} do
       user = user_fixture()
 
@@ -144,6 +315,26 @@ defmodule CaracolWeb.UserLive.SessionsTest do
       _ = :sys.get_state(lv.pid)
       assert_patch(lv, ~p"/users/sessions")
       refute has_element?(lv, "#revoke-session-modal")
+    end
+
+    test "revoke route works for a session not on the current paginated page", %{conn: conn} do
+      user = user_fixture()
+
+      for _ <- 1..11 do
+        Accounts.generate_user_session_token(user)
+      end
+
+      off_page_session_id =
+        user
+        |> session_ids_for_user()
+        |> Enum.at(10)
+
+      {:ok, lv, _html} =
+        conn
+        |> log_in_user(user)
+        |> live(~p"/users/sessions/#{off_page_session_id}/revoke")
+
+      assert has_element?(lv, "#revoke-session-modal")
     end
 
     test "revokes a non-current session with REVOKE confirmation", %{conn: conn} do
@@ -266,5 +457,15 @@ defmodule CaracolWeb.UserLive.SessionsTest do
       assert path == ~p"/users/log-in"
       assert %{"error" => "You must log in to access this page."} = flash
     end
+  end
+
+  defp session_ids_for_user(user) do
+    Repo.all(
+      from(t in UserToken,
+        where: t.user_id == ^user.id and t.context == "session",
+        order_by: [desc: t.inserted_at, desc: t.id],
+        select: t.id
+      )
+    )
   end
 end

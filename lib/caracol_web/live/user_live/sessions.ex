@@ -5,6 +5,7 @@ defmodule CaracolWeb.UserLive.Sessions do
   alias Caracol.Accounts.UserToken
   alias CaracolWeb.UserAuth
   import CaracolWeb.SettingsComponents, only: [settings_panel: 1]
+  @per_page 10
 
   @impl true
   def mount(_params, session, socket) do
@@ -19,6 +20,11 @@ defmodule CaracolWeb.UserLive.Sessions do
      socket
      |> assign(:current_session_token, current_session_token)
      |> assign(:sessions, [])
+     |> assign(:page, 1)
+     |> assign(:per_page, @per_page)
+     |> assign(:total_sessions, 0)
+     |> assign(:total_pages, 1)
+     |> assign(:page_clamped?, false)
      |> assign(:utc_offset_minutes, utc_offset_minutes)
      |> assign(:show_expired, false)
      |> assign(:revoke_session_id, nil)
@@ -27,17 +33,21 @@ defmodule CaracolWeb.UserLive.Sessions do
 
   @impl true
   def handle_params(params, _uri, socket) do
+    requested_page = parse_page_param(Map.get(params, "page"))
+
     socket =
       socket
+      |> assign(:page, requested_page)
       |> refresh_sessions()
       |> apply_live_action(socket.assigns.live_action, params)
+      |> maybe_patch_clamped_page(socket.assigns.live_action, params)
 
     {:noreply, socket}
   end
 
   @impl true
   def handle_event("refresh", _params, socket) do
-    {:noreply, refresh_sessions(socket)}
+    {:noreply, socket |> refresh_sessions() |> maybe_patch_clamped_page(:index, %{})}
   end
 
   def handle_event("toggle_expired", _params, socket) do
@@ -45,12 +55,23 @@ defmodule CaracolWeb.UserLive.Sessions do
       socket
       |> assign(:show_expired, not socket.assigns.show_expired)
       |> refresh_sessions()
+      |> maybe_patch_clamped_page(:index, %{})
 
     {:noreply, socket}
   end
 
+  def handle_event("prev_page", _params, socket) do
+    page = max(socket.assigns.page - 1, 1)
+    {:noreply, push_patch(socket, to: sessions_index_path(page))}
+  end
+
+  def handle_event("next_page", _params, socket) do
+    page = min(socket.assigns.page + 1, socket.assigns.total_pages)
+    {:noreply, push_patch(socket, to: sessions_index_path(page))}
+  end
+
   def handle_event("cancel_revoke", _params, socket) do
-    {:noreply, push_patch(socket, to: ~p"/users/sessions")}
+    {:noreply, push_patch(socket, to: sessions_index_path(socket.assigns.page))}
   end
 
   def handle_event("validate_revoke", %{"revoke" => params}, socket) do
@@ -65,11 +86,10 @@ defmodule CaracolWeb.UserLive.Sessions do
       case Accounts.revoke_user_session(socket.assigns.current_scope, session_id) do
         {:ok, revoked_session} ->
           UserAuth.disconnect_sessions([revoked_session])
-          sessions = Accounts.list_user_sessions(socket.assigns.current_scope)
 
           socket =
             socket
-            |> assign(:sessions, sessions)
+            |> refresh_sessions()
             |> assign(:revoke_session_id, nil)
             |> assign(:revoke_form, revoke_form())
 
@@ -82,14 +102,14 @@ defmodule CaracolWeb.UserLive.Sessions do
             {:noreply,
              socket
              |> put_flash(:info, "Session revoked.")
-             |> push_patch(to: ~p"/users/sessions")}
+             |> push_patch(to: sessions_index_path(socket.assigns.page))}
           end
 
         {:error, :not_found} ->
           {:noreply,
            socket
            |> put_flash(:error, "Session not found.")
-           |> push_patch(to: ~p"/users/sessions")}
+           |> push_patch(to: sessions_index_path(socket.assigns.page))}
       end
     else
       {:noreply, assign(socket, :revoke_form, revoke_form(params, :insert))}
@@ -99,18 +119,25 @@ defmodule CaracolWeb.UserLive.Sessions do
   @impl true
   def handle_info(:sessions_changed, socket) do
     socket = refresh_sessions(socket)
-    sessions = socket.assigns.sessions
 
     socket =
       if socket.assigns.live_action == :revoke and
            is_binary(socket.assigns.revoke_session_id) and
-           not Enum.any?(sessions, &(&1.id == socket.assigns.revoke_session_id)) do
+           is_nil(
+             Accounts.get_user_session(
+               socket.assigns.current_scope,
+               socket.assigns.revoke_session_id,
+               include_expired: true
+             )
+           ) do
         socket
         |> assign(:revoke_session_id, nil)
         |> assign(:revoke_form, revoke_form())
-        |> push_patch(to: ~p"/users/sessions")
+        |> push_patch(to: sessions_index_path(socket.assigns.page))
       else
-        socket
+        maybe_patch_clamped_page(socket, socket.assigns.live_action, %{
+          "id" => socket.assigns.revoke_session_id
+        })
       end
 
     {:noreply, socket}
@@ -152,7 +179,7 @@ defmodule CaracolWeb.UserLive.Sessions do
             </div>
           </div>
 
-          <div id="sessions-list" class="space-y-3">
+          <div id="sessions-list" class="space-y-0">
             <div
               :if={@sessions == []}
               id="sessions-empty"
@@ -163,13 +190,13 @@ defmodule CaracolWeb.UserLive.Sessions do
 
             <div
               :if={@sessions != []}
-              class="-mx-6 w-[calc(100%+3rem)] overflow-x-auto border-y border-base-300"
+              class="-mx-6 w-[calc(100%+3rem)] overflow-x-auto"
             >
               <.table
                 id="sessions-table"
                 rows={@sessions}
                 row_id={fn session -> "session-#{session.id}" end}
-                class="!w-full"
+                class="!w-full [&_thead_tr_th:first-child]:!pl-6 [&_tbody_tr_td:first-child]:!pl-6"
               >
                 <:col :let={session} label="Login time">
                   <div id={"session-login-#{session.id}"} class="space-y-1">
@@ -222,13 +249,52 @@ defmodule CaracolWeb.UserLive.Sessions do
                 <:action :let={session}>
                   <.link
                     id={"session-revoke-#{session.id}"}
-                    patch={~p"/users/sessions/#{session.id}/revoke"}
+                    patch={sessions_revoke_path(session.id, @page)}
                     class="btn btn-sm btn-ghost text-error hover:bg-error/10"
                   >
                     <.icon name="hero-trash" class="size-4" /> Revoke
                   </.link>
                 </:action>
               </.table>
+            </div>
+
+            <div
+              :if={@total_sessions > 0}
+              id="sessions-pagination"
+              class="-mx-6 flex flex-col gap-3 border-t border-base-300 px-6 pt-4 sm:flex-row sm:items-center sm:justify-between"
+            >
+              <p id="sessions-total-count" class="text-sm text-base-content/70">
+                {@total_sessions} total sessions
+              </p>
+
+              <div class="flex items-center gap-2">
+                <button
+                  id="sessions-page-prev"
+                  type="button"
+                  phx-click="prev_page"
+                  disabled={@page <= 1}
+                  class="btn btn-sm btn-outline disabled:btn-disabled"
+                >
+                  <.icon name="hero-chevron-left" class="size-4" /> Prev
+                </button>
+
+                <p
+                  id="sessions-page-label"
+                  class="min-w-28 text-center text-xs font-semibold uppercase tracking-[0.12em] text-base-content/60"
+                >
+                  Page {@page} of {@total_pages}
+                </p>
+
+                <button
+                  id="sessions-page-next"
+                  type="button"
+                  phx-click="next_page"
+                  disabled={@page >= @total_pages}
+                  class="btn btn-sm btn-outline disabled:btn-disabled"
+                >
+                  Next <.icon name="hero-chevron-right" class="size-4" />
+                </button>
+              </div>
             </div>
           </div>
         </section>
@@ -407,7 +473,7 @@ defmodule CaracolWeb.UserLive.Sessions do
   end
 
   defp apply_live_action(socket, :revoke, %{"id" => session_id}) do
-    if Enum.any?(socket.assigns.sessions, &(&1.id == session_id)) do
+    if Accounts.get_user_session(socket.assigns.current_scope, session_id, include_expired: true) do
       socket
       |> assign(:revoke_session_id, session_id)
       |> assign(:revoke_form, revoke_form())
@@ -416,7 +482,7 @@ defmodule CaracolWeb.UserLive.Sessions do
       |> put_flash(:error, "Session not found.")
       |> assign(:revoke_session_id, nil)
       |> assign(:revoke_form, revoke_form())
-      |> push_patch(to: ~p"/users/sessions")
+      |> push_patch(to: sessions_index_path(socket.assigns.page))
     end
   end
 
@@ -442,18 +508,80 @@ defmodule CaracolWeb.UserLive.Sessions do
   defp datetime_attr(_), do: nil
 
   defp refresh_sessions(socket) do
-    sessions =
-      socket.assigns.current_scope
-      |> Accounts.list_user_sessions()
-      |> maybe_filter_expired(socket.assigns.show_expired)
+    include_expired = socket.assigns.show_expired
 
-    assign(socket, :sessions, sessions)
+    total_sessions =
+      Accounts.count_user_sessions(socket.assigns.current_scope, include_expired: include_expired)
+
+    total_pages = page_count(total_sessions, socket.assigns.per_page)
+    requested_page = socket.assigns.page
+    page = clamp_page(requested_page, total_pages)
+    offset = (page - 1) * socket.assigns.per_page
+
+    sessions =
+      Accounts.list_user_sessions(socket.assigns.current_scope,
+        include_expired: include_expired,
+        limit: socket.assigns.per_page,
+        offset: offset
+      )
+
+    socket
+    |> assign(:sessions, sessions)
+    |> assign(:total_sessions, total_sessions)
+    |> assign(:total_pages, total_pages)
+    |> assign(:page, page)
+    |> assign(:page_clamped?, page != requested_page)
   end
 
-  defp maybe_filter_expired(sessions, true), do: sessions
+  defp maybe_patch_clamped_page(
+         %{assigns: %{page_clamped?: false}} = socket,
+         _live_action,
+         _params
+       ),
+       do: socket
 
-  defp maybe_filter_expired(sessions, false) do
-    Enum.reject(sessions, &session_expired?/1)
+  defp maybe_patch_clamped_page(
+         %{assigns: %{revoke_session_id: session_id}} = socket,
+         :revoke,
+         %{"id" => session_id}
+       )
+       when is_binary(session_id) do
+    push_patch(socket, to: sessions_revoke_path(session_id, socket.assigns.page))
+  end
+
+  defp maybe_patch_clamped_page(socket, _live_action, _params) do
+    push_patch(socket, to: sessions_index_path(socket.assigns.page))
+  end
+
+  defp parse_page_param(raw_page) when is_binary(raw_page) do
+    case Integer.parse(raw_page) do
+      {page, ""} when page > 0 -> page
+      _ -> 1
+    end
+  end
+
+  defp parse_page_param(_), do: 1
+
+  defp page_count(0, _per_page), do: 1
+  defp page_count(total_sessions, per_page), do: div(total_sessions + per_page - 1, per_page)
+
+  defp clamp_page(page, _total_pages) when page < 1, do: 1
+  defp clamp_page(page, total_pages) when page > total_pages, do: total_pages
+  defp clamp_page(page, _total_pages), do: page
+
+  defp sessions_index_path(page) when is_integer(page) and page > 1 do
+    ~p"/users/sessions?page=#{page}"
+  end
+
+  defp sessions_index_path(_page), do: ~p"/users/sessions"
+
+  defp sessions_revoke_path(session_id, page)
+       when is_binary(session_id) and is_integer(page) and page > 1 do
+    ~p"/users/sessions/#{session_id}/revoke?page=#{page}"
+  end
+
+  defp sessions_revoke_path(session_id, _page) when is_binary(session_id) do
+    ~p"/users/sessions/#{session_id}/revoke"
   end
 
   defp session_expired?(%UserToken{inserted_at: %DateTime{} = inserted_at}) do
