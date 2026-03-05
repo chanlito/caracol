@@ -6,7 +6,7 @@ defmodule CaracolWeb.AppShellTest do
 
   describe "authenticated app routes" do
     test "redirect unauthenticated users from live routes", %{conn: conn} do
-      assert {:error, redirect} = live(conn, ~p"/app")
+      assert {:error, redirect} = live(conn, ~p"/home")
       assert {:redirect, %{to: path}} = redirect
       assert path == ~p"/users/log-in"
 
@@ -19,13 +19,13 @@ defmodule CaracolWeb.AppShellTest do
       assert path == ~p"/users/log-in"
     end
 
-    test "renders shell and nav on /app for authenticated users", %{conn: conn} do
+    test "renders shell and nav on /home for authenticated users", %{conn: conn} do
       user = user_fixture()
 
       {:ok, view, _html} =
         conn
         |> log_in_user(user)
-        |> live(~p"/app")
+        |> live(~p"/home")
 
       assert has_element?(view, "#app-shell-sidebar")
       assert has_element?(view, "#app-shell-mobile-toggle")
@@ -38,7 +38,7 @@ defmodule CaracolWeb.AppShellTest do
       assert has_element?(view, "#app-user-settings")
       assert has_element?(view, "#app-theme-dropdown")
       assert has_element?(view, "#app-user-logout")
-      assert has_element?(view, "#app-home-page")
+      assert has_element?(view, "#home-page")
 
       html = render(view)
       assert html =~ "hero-home"

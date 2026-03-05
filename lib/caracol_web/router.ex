@@ -54,7 +54,7 @@ defmodule CaracolWeb.Router do
 
     live_session :require_authenticated_user,
       on_mount: [{CaracolWeb.UserAuth, :require_authenticated}] do
-      live "/app", AppLive.Index, :index
+      live "/home", AppLive.Home, :index
       live "/playground", AppLive.Playground, :index
       live "/users/settings", UserLive.Settings, :edit
       live "/users/settings/confirm-email/:token", UserLive.Settings, :confirm_email

@@ -120,7 +120,7 @@ defmodule CaracolWeb.Layouts do
           class="flex h-full min-h-full w-72 flex-col border-r border-base-300 bg-base-100 px-3 transition-[width,padding] duration-200 ease-out"
         >
           <.link
-            navigate={~p"/app"}
+            navigate={~p"/home"}
             class="app-shell-brand-link app-shell-nav-link grid w-full min-h-10 my-2 grid-cols-[2rem_minmax(0,1fr)] items-center gap-2 rounded-lg px-3 py-2 text-base font-bold tracking-tight transition hover:bg-base-200 hover:text-primary"
           >
             <span class="app-shell-row-icon inline-flex size-8 items-center justify-center">
@@ -134,8 +134,8 @@ defmodule CaracolWeb.Layouts do
               <li class="w-full">
                 <.link
                   id="app-nav-home"
-                  navigate={~p"/app"}
-                  class={nav_link_classes(@current_path == ~p"/app")}
+                  navigate={~p"/home"}
+                  class={nav_link_classes(@current_path == ~p"/home")}
                   data-tip="Home"
                 >
                   <span class="app-shell-row-icon inline-flex size-8 items-center justify-center">
