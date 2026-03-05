@@ -26,6 +26,8 @@
         </div>
 
         <div class="navbar-end gap-2">
+          <.theme_dropdown id="home-theme-dropdown" />
+
           <%= if @current_scope do %>
             <span class="hidden text-sm text-base-content/70 sm:inline">
               {@current_scope.user.email}

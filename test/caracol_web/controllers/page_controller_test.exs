@@ -11,6 +11,7 @@ defmodule CaracolWeb.PageControllerTest do
     assert response =~ ~s(id="landing-testimonials")
     assert response =~ ~s(id="landing-technology")
     assert response =~ ~s(id="landing-cta")
+    assert response =~ ~s(id="home-theme-dropdown")
     assert response =~ "Used by companies"
     assert response =~ "Testimonials"
     assert response =~ "Technology"
@@ -31,6 +32,7 @@ defmodule CaracolWeb.PageControllerTest do
 
     response = html_response(conn, 200)
 
+    assert response =~ ~s(id="home-theme-dropdown")
     assert response =~ user.email
     assert response =~ "Log out"
     refute response =~ "Register now"
