@@ -6,7 +6,7 @@ defmodule Caracol.Accounts do
   import Ecto.Query, warn: false
   alias Caracol.Repo
 
-  alias Caracol.Accounts.{User, UserToken, UserNotifier}
+  alias Caracol.Accounts.{Scope, User, UserToken, UserNotifier}
 
   ## Database getters
 
@@ -168,6 +168,19 @@ defmodule Caracol.Accounts do
   end
 
   ## Session
+
+  @doc """
+  Lists active session tokens for the current scoped user.
+  """
+  def list_user_sessions(%Scope{user: %User{id: user_id}}) do
+    from(t in UserToken,
+      where: t.user_id == ^user_id and t.context == "session",
+      order_by: [desc: t.inserted_at]
+    )
+    |> Repo.all()
+  end
+
+  def list_user_sessions(_scope), do: []
 
   @doc """
   Generates a session token.

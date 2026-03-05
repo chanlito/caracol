@@ -161,7 +161,7 @@ defmodule CaracolWeb.Layouts do
                 <.link
                   id="app-nav-settings"
                   navigate={~p"/users/settings"}
-                  class={nav_link_classes(@current_path == ~p"/users/settings")}
+                  class={nav_link_classes(settings_path?(@current_path))}
                   data-tip="Settings"
                 >
                   <span class="app-shell-row-icon inline-flex size-8 items-center justify-center">
@@ -300,6 +300,10 @@ defmodule CaracolWeb.Layouts do
         else: "text-base-content/80 hover:bg-base-200 hover:text-base-content"
       )
     ]
+  end
+
+  defp settings_path?(path) do
+    path in [~p"/users/settings", ~p"/users/appearance", ~p"/users/sessions"]
   end
 
   defp user_initials(nil), do: "U"

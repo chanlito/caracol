@@ -57,6 +57,8 @@ defmodule CaracolWeb.Router do
       live "/home", AppLive.Home, :index
       live "/playground", AppLive.Playground, :index
       live "/users/settings", UserLive.Settings, :edit
+      live "/users/appearance", UserLive.Appearance, :index
+      live "/users/sessions", UserLive.Sessions, :index
       live "/users/settings/confirm-email/:token", UserLive.Settings, :confirm_email
     end
 
