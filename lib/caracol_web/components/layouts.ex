@@ -125,14 +125,16 @@ defmodule CaracolWeb.Layouts do
         <label for="app-shell-drawer" class="drawer-overlay"></label>
         <aside
           id="app-shell-sidebar"
-          class="flex h-full min-h-full w-72 flex-col border-r border-base-300 bg-base-100 px-4 py-5 transition-[width,padding] duration-200 ease-out sm:px-5"
+          class="flex h-full min-h-full w-72 flex-col border-r border-base-300 bg-base-100 px-3 py-5 transition-[width,padding] duration-200 ease-out"
         >
           <.link
             navigate={~p"/app"}
-            class="app-shell-brand-link inline-flex h-10 w-full items-center gap-2 rounded-lg px-3 py-0 text-lg font-bold tracking-tight transition hover:bg-base-200 hover:text-primary"
+            class="app-shell-brand-link grid h-10 w-full grid-cols-[2rem_minmax(0,1fr)] items-center gap-2 rounded-lg px-3 py-0 text-lg font-bold tracking-tight transition hover:bg-base-200 hover:text-primary"
           >
-            <.icon name="hero-command-line" class="size-5 text-primary" />
-            <span class="app-shell-brand-label">Caracol</span>
+            <span class="app-shell-row-icon inline-flex size-8 items-center justify-center">
+              <.icon name="hero-command-line" class="size-5 text-primary" />
+            </span>
+            <span class="app-shell-brand-label app-shell-row-label">Caracol</span>
           </.link>
 
           <nav class="mt-8">
@@ -144,8 +146,10 @@ defmodule CaracolWeb.Layouts do
                   class={nav_link_classes(@current_path == ~p"/app")}
                   data-tip="Home"
                 >
-                  <.icon name="hero-home" class="size-4 shrink-0" />
-                  <span class="app-shell-nav-label">Home</span>
+                  <span class="app-shell-row-icon inline-flex size-8 items-center justify-center">
+                    <.icon name="hero-home" class="size-4 shrink-0" />
+                  </span>
+                  <span class="app-shell-nav-label app-shell-row-label">Home</span>
                 </.link>
               </li>
               <li class="w-full">
@@ -155,8 +159,10 @@ defmodule CaracolWeb.Layouts do
                   class={nav_link_classes(@current_path == ~p"/playground")}
                   data-tip="Playground"
                 >
-                  <.icon name="hero-beaker" class="size-4 shrink-0" />
-                  <span class="app-shell-nav-label">Playground</span>
+                  <span class="app-shell-row-icon inline-flex size-8 items-center justify-center">
+                    <.icon name="hero-beaker" class="size-4 shrink-0" />
+                  </span>
+                  <span class="app-shell-nav-label app-shell-row-label">Playground</span>
                 </.link>
               </li>
               <li class="w-full">
@@ -166,8 +172,10 @@ defmodule CaracolWeb.Layouts do
                   class={nav_link_classes(@current_path == ~p"/users/settings")}
                   data-tip="Settings"
                 >
-                  <.icon name="hero-cog-6-tooth" class="size-4 shrink-0" />
-                  <span class="app-shell-nav-label">Settings</span>
+                  <span class="app-shell-row-icon inline-flex size-8 items-center justify-center">
+                    <.icon name="hero-cog-6-tooth" class="size-4 shrink-0" />
+                  </span>
+                  <span class="app-shell-nav-label app-shell-row-label">Settings</span>
                 </.link>
               </li>
             </ul>
@@ -179,12 +187,14 @@ defmodule CaracolWeb.Layouts do
                 type="button"
                 tabindex="0"
                 aria-label="Open account menu"
-                class="app-shell-account-trigger inline-flex h-10 w-full items-center gap-3 rounded-lg px-3 text-left transition hover:bg-base-200"
+                class="app-shell-account-trigger grid h-10 w-full grid-cols-[2rem_minmax(0,1fr)] items-center gap-2 rounded-lg px-3 text-left transition hover:bg-base-200"
               >
-                <span class="app-shell-account-avatar inline-flex size-8 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-semibold text-primary-content">
-                  {@user_initials}
+                <span class="app-shell-row-icon inline-flex size-8 items-center justify-center">
+                  <span class="app-shell-account-avatar inline-flex size-8 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-semibold text-primary-content">
+                    {@user_initials}
+                  </span>
                 </span>
-                <span class="app-shell-account-label min-w-0 text-sm font-medium text-base-content/85">
+                <span class="app-shell-account-label app-shell-row-label text-sm font-medium text-base-content/85">
                   <span class="block truncate">{@current_scope.user.email}</span>
                 </span>
               </button>
@@ -270,7 +280,7 @@ defmodule CaracolWeb.Layouts do
 
   defp nav_link_classes(active?) do
     [
-      "app-shell-nav-link inline-flex w-full min-h-10 items-center gap-2 rounded-lg px-3 py-2.5 text-sm font-medium transition",
+      "app-shell-nav-link grid w-full min-h-10 grid-cols-[2rem_minmax(0,1fr)] items-center gap-2 rounded-lg px-3 py-2.5 text-sm font-medium transition",
       if(active?,
         do: "bg-primary text-primary-content shadow-sm",
         else: "text-base-content/80 hover:bg-base-200 hover:text-base-content"
