@@ -18,6 +18,9 @@
         };
 
         const setTheme = (theme) => {
+          const selectedTheme = theme === "light" || theme === "dark" ? theme : "system";
+          document.documentElement.setAttribute("data-theme-preference", selectedTheme);
+
           if (theme === "system") {
             localStorage.removeItem("phx:theme");
             applySystemTheme();

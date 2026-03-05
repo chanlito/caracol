@@ -102,6 +102,12 @@
 /* Make LiveView wrapper divs transparent for layout */
 [data-phx-session], [data-phx-teleported-src] { display: contents }
 
+:root[data-theme-preference="system"] .theme-option[data-theme-option="system"] .theme-selected-indicator,
+:root[data-theme-preference="light"] .theme-option[data-theme-option="light"] .theme-selected-indicator,
+:root[data-theme-preference="dark"] .theme-option[data-theme-option="dark"] .theme-selected-indicator {
+  visibility: visible;
+}
+
 @media (max-width: 63.999rem) {
   #app-shell-drawer ~ .drawer-side > :not(.drawer-overlay) {
     translate: 0 0;

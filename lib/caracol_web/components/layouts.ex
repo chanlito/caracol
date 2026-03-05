@@ -4,7 +4,7 @@ defmodule CaracolWeb.Layouts do
   used by your application.
   """
   use CaracolWeb, :html
-  import CaracolWeb.ThemeComponents, only: [theme_dropdown: 1, theme_toggle: 1]
+  import CaracolWeb.ThemeComponents, only: [theme_submenu: 1, theme_toggle: 1]
 
   # Embed all files in layouts/* within this module.
   # The default root.html.heex file contains the HTML
@@ -226,16 +226,14 @@ defmodule CaracolWeb.Layouts do
                       <.icon name="hero-cog-6-tooth" class="size-4" /> Settings
                     </.link>
                   </li>
-                  <li>
-                    <div class="flex items-center justify-between gap-3 px-3 py-2">
-                      <span class="inline-flex items-center gap-2 text-sm">
-                        <.icon name="hero-swatch" class="size-4" /> Theme
-                      </span>
-                      <.theme_dropdown id="app-theme-dropdown" />
-                    </div>
-                  </li>
-                  <li>
-                    <.link id="app-user-logout" href={~p"/users/log-out"} method="delete">
+                  <.theme_submenu id="app-theme-submenu" />
+                  <li class="mt-1 border-t border-base-300 pt-1">
+                    <.link
+                      id="app-user-logout"
+                      href={~p"/users/log-out"}
+                      method="delete"
+                      class="text-error hover:bg-error/10 focus:bg-error/10"
+                    >
                       <.icon name="hero-arrow-right-start-on-rectangle" class="size-4" /> Log out
                     </.link>
                   </li>

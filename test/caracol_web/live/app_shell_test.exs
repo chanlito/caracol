@@ -36,7 +36,7 @@ defmodule CaracolWeb.AppShellTest do
       assert has_element?(view, "#app-sidebar-account")
       assert has_element?(view, "#app-sidebar-user-menu")
       assert has_element?(view, "#app-user-settings")
-      assert has_element?(view, "#app-theme-dropdown")
+      assert has_element?(view, "#app-theme-submenu")
       assert has_element?(view, "#app-user-logout")
       assert has_element?(view, "#home-page")
 
