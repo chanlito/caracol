@@ -102,7 +102,60 @@
 /* Make LiveView wrapper divs transparent for layout */
 [data-phx-session], [data-phx-teleported-src] { display: contents }
 
+@media (max-width: 63.999rem) {
+  #app-shell-drawer ~ .drawer-side > :not(.drawer-overlay) {
+    translate: 0 0;
+    transform: translateX(-100%);
+    transition: transform 0.28s ease-out;
+  }
+
+  #app-shell-drawer:checked ~ .drawer-side > :not(.drawer-overlay) {
+    transform: translateX(0);
+  }
+
+  #app-shell-drawer ~ .drawer-side > .drawer-overlay {
+    opacity: 0;
+    transition: opacity 0.24s ease-out;
+  }
+
+  #app-shell-drawer:checked ~ .drawer-side > .drawer-overlay {
+    opacity: 1;
+  }
+}
+
 @media (min-width: 64rem) {
+  :root[data-sidebar-state="expanded"] #app-sidebar-desktop-toggle .app-sidebar-toggle-open {
+    display: none;
+  }
+
+  :root[data-sidebar-state="expanded"] #app-sidebar-desktop-toggle .app-sidebar-toggle-close {
+    display: inline-flex;
+  }
+
+  :root[data-sidebar-state="expanded"] #app-sidebar-desktop-toggle .app-sidebar-toggle-label-open {
+    display: none;
+  }
+
+  :root[data-sidebar-state="expanded"] #app-sidebar-desktop-toggle .app-sidebar-toggle-label-close {
+    display: inline;
+  }
+
+  :root[data-sidebar-state="collapsed"] #app-sidebar-desktop-toggle .app-sidebar-toggle-open {
+    display: inline-flex;
+  }
+
+  :root[data-sidebar-state="collapsed"] #app-sidebar-desktop-toggle .app-sidebar-toggle-close {
+    display: none;
+  }
+
+  :root[data-sidebar-state="collapsed"] #app-sidebar-desktop-toggle .app-sidebar-toggle-label-open {
+    display: inline;
+  }
+
+  :root[data-sidebar-state="collapsed"] #app-sidebar-desktop-toggle .app-sidebar-toggle-label-close {
+    display: none;
+  }
+
   :root[data-sidebar-state="collapsed"] #app-shell-drawer:not(:checked) ~ .drawer-side {
     overflow: visible;
   }

@@ -90,7 +90,7 @@ defmodule CaracolWeb.Layouts do
 
       <div class="drawer-content flex min-h-screen flex-col">
         <header class="sticky top-0 z-20 border-b border-base-300 bg-base-100/95 backdrop-blur">
-          <div class="grid grid-cols-[auto_1fr_auto] items-center px-4 py-3 sm:px-6">
+          <div class="grid h-16 grid-cols-[auto_1fr_auto] items-center px-4 sm:px-6">
             <div class="flex items-center gap-2">
               <label
                 for="app-shell-drawer"
@@ -100,19 +100,11 @@ defmodule CaracolWeb.Layouts do
               >
                 <.icon name="hero-bars-3" class="size-5" />
               </label>
-              <label
-                for="app-shell-drawer"
-                id="app-shell-desktop-toggle"
-                aria-label="toggle sidebar"
-                class="btn btn-square btn-ghost hidden lg:inline-flex"
-              >
-                <.icon name="hero-bars-3-center-left" class="size-5" />
-              </label>
             </div>
             <div class="justify-self-center text-sm font-semibold text-base-content/75">
               Application
             </div>
-            <div aria-hidden="true" class="w-10 lg:w-20"></div>
+            <div aria-hidden="true" class="w-10"></div>
           </div>
         </header>
 
@@ -125,11 +117,11 @@ defmodule CaracolWeb.Layouts do
         <label for="app-shell-drawer" class="drawer-overlay"></label>
         <aside
           id="app-shell-sidebar"
-          class="flex h-full min-h-full w-72 flex-col border-r border-base-300 bg-base-100 px-3 py-5 transition-[width,padding] duration-200 ease-out"
+          class="flex h-full min-h-full w-72 flex-col border-r border-base-300 bg-base-100 px-3 py-4 transition-[width,padding] duration-200 ease-out"
         >
           <.link
             navigate={~p"/app"}
-            class="app-shell-brand-link grid h-10 w-full grid-cols-[2rem_minmax(0,1fr)] items-center gap-2 rounded-lg px-3 py-0 text-lg font-bold tracking-tight transition hover:bg-base-200 hover:text-primary"
+            class="app-shell-brand-link app-shell-nav-link grid w-full min-h-10 grid-cols-[2rem_minmax(0,1fr)] items-center gap-2 rounded-lg px-3 py-2.5 text-base font-bold tracking-tight transition hover:bg-base-200 hover:text-primary"
           >
             <span class="app-shell-row-icon inline-flex size-8 items-center justify-center">
               <.icon name="hero-command-line" class="size-5 text-primary" />
@@ -137,7 +129,7 @@ defmodule CaracolWeb.Layouts do
             <span class="app-shell-brand-label app-shell-row-label">Caracol</span>
           </.link>
 
-          <nav class="mt-8">
+          <nav class="mt-4">
             <ul class="menu w-full gap-2 p-0">
               <li class="w-full">
                 <.link
@@ -181,13 +173,36 @@ defmodule CaracolWeb.Layouts do
             </ul>
           </nav>
 
-          <div id="app-sidebar-account" class="mt-auto border-t border-base-300 pt-4">
+          <div class="mt-auto">
+            <label
+              for="app-shell-drawer"
+              id="app-sidebar-desktop-toggle"
+              aria-label="toggle sidebar"
+              class="app-shell-nav-link mb-2 hidden w-full min-h-10 cursor-pointer grid-cols-[2rem_minmax(0,1fr)] items-center gap-2 rounded-lg px-3 py-2.5 text-left text-sm font-medium text-base-content/80 transition hover:bg-base-200 hover:text-base-content lg:grid"
+            >
+              <span class="app-shell-row-icon inline-flex size-8 items-center justify-center">
+                <.icon
+                  name="hero-chevron-double-left"
+                  class="app-sidebar-toggle-close inline-flex size-4 shrink-0"
+                />
+                <.icon
+                  name="hero-chevron-double-right"
+                  class="app-sidebar-toggle-open hidden size-4 shrink-0"
+                />
+              </span>
+              <span class="app-shell-row-label app-shell-account-label text-sm font-medium text-base-content/85">
+                <span class="app-sidebar-toggle-label-close inline">Collapse</span>
+                <span class="app-sidebar-toggle-label-open hidden">Expand</span>
+              </span>
+            </label>
+
+            <div id="app-sidebar-account" class="border-t border-base-300 pt-2">
             <div id="app-sidebar-user-menu" class="dropdown dropdown-top w-full">
               <button
                 type="button"
                 tabindex="0"
                 aria-label="Open account menu"
-                class="app-shell-account-trigger grid h-10 w-full grid-cols-[2rem_minmax(0,1fr)] items-center gap-2 rounded-lg px-3 text-left transition hover:bg-base-200"
+                class="app-shell-account-trigger app-shell-nav-link grid w-full min-h-10 cursor-pointer grid-cols-[2rem_minmax(0,1fr)] items-center gap-2 rounded-lg px-3 py-2.5 text-left text-sm font-medium text-base-content/80 transition hover:bg-base-200 hover:text-base-content"
               >
                 <span class="app-shell-row-icon inline-flex size-8 items-center justify-center">
                   <span class="app-shell-account-avatar inline-flex size-8 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-semibold text-primary-content">
@@ -225,6 +240,7 @@ defmodule CaracolWeb.Layouts do
                   </.link>
                 </li>
               </ul>
+            </div>
             </div>
           </div>
         </aside>

@@ -5,7 +5,7 @@ defmodule CaracolWeb.AppLive.Index do
   def render(assigns) do
     ~H"""
     <Layouts.app_shell flash={@flash} current_scope={@current_scope} current_path={~p"/app"}>
-      <section id="app-home-page" class="mx-auto max-w-5xl">
+      <section id="app-home-page" class="w-full">
         <div class="rounded-box border border-base-300 bg-base-100 p-6 shadow-sm sm:p-8">
           <p class="text-sm font-semibold uppercase tracking-[0.18em] text-base-content/60">
             App Home

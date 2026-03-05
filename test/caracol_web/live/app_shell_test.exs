@@ -29,7 +29,7 @@ defmodule CaracolWeb.AppShellTest do
 
       assert has_element?(view, "#app-shell-sidebar")
       assert has_element?(view, "#app-shell-mobile-toggle")
-      assert has_element?(view, "#app-shell-desktop-toggle")
+      assert has_element?(view, "#app-sidebar-desktop-toggle")
       assert has_element?(view, "#app-nav-home")
       assert has_element?(view, "#app-nav-playground")
       assert has_element?(view, "#app-nav-settings")
