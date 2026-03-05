@@ -59,6 +59,7 @@ defmodule CaracolWeb.Router do
       live "/users/settings", UserLive.Settings, :edit
       live "/users/appearance", UserLive.Appearance, :index
       live "/users/sessions", UserLive.Sessions, :index
+      live "/users/sessions/:id/revoke", UserLive.Sessions, :revoke
       live "/users/settings/confirm-email/:token", UserLive.Settings, :confirm_email
     end
 

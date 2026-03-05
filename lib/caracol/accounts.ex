@@ -170,6 +170,15 @@ defmodule Caracol.Accounts do
   ## Session
 
   @doc """
+  Subscribes to user session change events for the current scoped user.
+  """
+  def subscribe_user_sessions(%Scope{user: %User{id: user_id}}) do
+    Phoenix.PubSub.subscribe(Caracol.PubSub, user_sessions_topic(user_id))
+  end
+
+  def subscribe_user_sessions(_scope), do: :ok
+
+  @doc """
   Lists active session tokens for the current scoped user.
   """
   def list_user_sessions(%Scope{user: %User{id: user_id}}) do
@@ -185,9 +194,10 @@ defmodule Caracol.Accounts do
   @doc """
   Generates a session token.
   """
-  def generate_user_session_token(user) do
-    {token, user_token} = UserToken.build_session_token(user)
+  def generate_user_session_token(user, attrs \\ %{}) do
+    {token, user_token} = UserToken.build_session_token(user, attrs)
     Repo.insert!(user_token)
+    broadcast_user_sessions_changed(user.id)
     token
   end
 
@@ -290,21 +300,70 @@ defmodule Caracol.Accounts do
   Deletes the signed token with the given context.
   """
   def delete_user_session_token(token) do
-    Repo.delete_all(from(UserToken, where: [token: ^token, context: "session"]))
+    case Repo.get_by(UserToken, token: token, context: "session") do
+      %UserToken{} = session_token ->
+        {:ok, _deleted} = Repo.delete(session_token)
+        broadcast_user_sessions_changed(session_token.user_id)
+
+      nil ->
+        :ok
+    end
+
     :ok
   end
+
+  @doc """
+  Revokes a session token by id for the current scoped user.
+  """
+  def revoke_user_session(%Scope{user: %User{id: user_id}}, session_id)
+      when is_binary(session_id) do
+    query =
+      from(t in UserToken,
+        where: t.id == ^session_id and t.user_id == ^user_id and t.context == "session"
+      )
+
+    case Repo.one(query) do
+      %UserToken{} = token ->
+        {:ok, _token} = Repo.delete(token)
+        broadcast_user_sessions_changed(token.user_id)
+        {:ok, token}
+
+      nil ->
+        {:error, :not_found}
+    end
+  end
+
+  def revoke_user_session(_scope, _session_id), do: {:error, :not_found}
 
   ## Token helper
 
   defp update_user_and_delete_all_tokens(changeset) do
-    Repo.transact(fn ->
-      with {:ok, user} <- Repo.update(changeset) do
-        tokens_to_expire = Repo.all_by(UserToken, user_id: user.id)
+    case Repo.transact(fn ->
+           with {:ok, user} <- Repo.update(changeset) do
+             tokens_to_expire = Repo.all_by(UserToken, user_id: user.id)
 
-        Repo.delete_all(from(t in UserToken, where: t.id in ^Enum.map(tokens_to_expire, & &1.id)))
+             Repo.delete_all(
+               from(t in UserToken, where: t.id in ^Enum.map(tokens_to_expire, & &1.id))
+             )
 
-        {:ok, {user, tokens_to_expire}}
-      end
-    end)
+             {:ok, {user, tokens_to_expire}}
+           end
+         end) do
+      {:ok, {user, tokens_to_expire}} = result ->
+        if Enum.any?(tokens_to_expire, &(&1.context == "session")) do
+          broadcast_user_sessions_changed(user.id)
+        end
+
+        result
+
+      other ->
+        other
+    end
   end
+
+  defp broadcast_user_sessions_changed(user_id) when is_binary(user_id) do
+    Phoenix.PubSub.broadcast(Caracol.PubSub, user_sessions_topic(user_id), :sessions_changed)
+  end
+
+  defp user_sessions_topic(user_id), do: "users_sessions:changes:#{user_id}"
 end

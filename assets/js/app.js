@@ -24,15 +24,18 @@ import {Socket} from "phoenix"
 import {LiveSocket} from "phoenix_live_view"
 import {hooks as colocatedHooks} from "phoenix-colocated/caracol"
 import topbar from "../vendor/topbar"
-import LocalTime from "./hooks/local_time"
+import DialogModal from "./hooks/dialog_modal"
 import Sidebar from "./hooks/sidebar"
 
 const csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute("content")
+
+const utcOffsetMinutes = () => -new Date().getTimezoneOffset()
+
 const liveSocket = new LiveSocket("/live", Socket, {
   longPollFallbackMs: 2500,
-  params: {_csrf_token: csrfToken},
+  params: {_csrf_token: csrfToken, utc_offset_minutes: utcOffsetMinutes()},
   hooks: {
-    LocalTime,
+    DialogModal,
     Sidebar,
     ...colocatedHooks,
   },

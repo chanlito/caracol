@@ -109,7 +109,12 @@ defmodule CaracolWeb.UserAuth do
   # function will clear the session to avoid fixation attacks. See the
   # renew_session function to customize this behaviour.
   defp create_or_extend_session(conn, user, params) do
-    token = Accounts.generate_user_session_token(user)
+    token =
+      Accounts.generate_user_session_token(user, %{
+        user_agent: user_agent_from_conn(conn),
+        ip_address: client_ip_from_conn(conn)
+      })
+
     remember_me = get_session(conn, :user_remember_me)
 
     conn
@@ -167,6 +172,61 @@ defmodule CaracolWeb.UserAuth do
     |> put_session(:user_token, token)
     |> put_session(:live_socket_id, user_session_topic(token))
   end
+
+  defp user_agent_from_conn(conn) do
+    conn
+    |> get_req_header("user-agent")
+    |> List.first()
+    |> sanitize_user_agent()
+  end
+
+  defp sanitize_user_agent(nil), do: nil
+
+  defp sanitize_user_agent(value) when is_binary(value) do
+    value
+    |> String.trim()
+    |> case do
+      "" -> nil
+      user_agent -> String.slice(user_agent, 0, 255)
+    end
+  end
+
+  defp client_ip_from_conn(conn) do
+    case first_forwarded_ip(conn) do
+      nil -> format_remote_ip(conn.remote_ip)
+      ip -> ip
+    end
+  end
+
+  defp first_forwarded_ip(conn) do
+    conn
+    |> get_req_header("x-forwarded-for")
+    |> List.first()
+    |> forwarded_ip()
+  end
+
+  defp forwarded_ip(nil), do: nil
+
+  defp forwarded_ip(value) when is_binary(value) do
+    value
+    |> String.split(",", trim: true)
+    |> Enum.find_value(fn candidate ->
+      candidate
+      |> String.trim()
+      |> validate_ip()
+    end)
+  end
+
+  defp validate_ip(""), do: nil
+
+  defp validate_ip(candidate) do
+    case :inet.parse_address(to_charlist(candidate)) do
+      {:ok, _address} -> candidate
+      {:error, _reason} -> nil
+    end
+  end
+
+  defp format_remote_ip(ip) when is_tuple(ip), do: to_string(:inet.ntoa(ip))
 
   @doc """
   Disconnects existing sockets for the given tokens.

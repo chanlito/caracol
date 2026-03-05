@@ -117,6 +117,85 @@ defmodule CaracolWeb.CoreComponents do
   end
 
   @doc """
+  Renders a reusable modal dialog container.
+
+  ## Examples
+
+      <.modal id="confirm-modal" show={@show_modal} on_cancel="close_modal" title="Confirm action">
+        <:subtitle>Type CONFIRM to continue.</:subtitle>
+        <p>Body content</p>
+      </.modal>
+  """
+  attr :id, :string, required: true
+  attr :show, :boolean, default: false
+  attr :on_cancel, :string, required: true
+  attr :title, :string, default: nil
+  attr :panel_class, :any, default: nil
+  attr :show_close, :boolean, default: true
+
+  slot :subtitle
+  slot :actions
+  slot :inner_block, required: true
+
+  def modal(assigns) do
+    ~H"""
+    <dialog
+      :if={@show}
+      id={@id}
+      class="modal"
+      phx-hook="DialogModal"
+      phx-mounted={JS.ignore_attributes("open")}
+      data-cancel-event={@on_cancel}
+    >
+      <section
+        aria-labelledby={if @title, do: "#{@id}-title", else: nil}
+        class={[
+          "modal-box relative max-w-lg rounded-2xl border border-base-300 bg-base-100 p-6 shadow-xl",
+          @panel_class
+        ]}
+      >
+        <form :if={@show_close} method="dialog">
+          <button
+            id={"#{@id}-close"}
+            type="submit"
+            phx-click={@on_cancel}
+            class="btn btn-ghost btn-sm btn-circle absolute right-3 top-3"
+            aria-label="Close modal"
+          >
+            <.icon name="hero-x-mark" class="size-4" />
+          </button>
+        </form>
+
+        <div
+          :if={@title || @subtitle != [] || @actions != []}
+          class="mb-4 flex items-start gap-4 pr-10"
+        >
+          <div class="flex-1">
+            <h2 :if={@title} id={"#{@id}-title"} class="text-lg font-semibold leading-8">
+              {@title}
+            </h2>
+            <p :if={@subtitle != []} class="text-sm text-base-content/70">
+              {render_slot(@subtitle)}
+            </p>
+          </div>
+          <div :if={@actions != []} class="flex-none">
+            {render_slot(@actions)}
+          </div>
+        </div>
+
+        {render_slot(@inner_block)}
+      </section>
+
+      <form method="dialog" class="modal-backdrop">
+        <button id={"#{@id}-backdrop"} phx-click={@on_cancel} aria-label="Close modal">
+          close
+        </button>
+      </form>
+    </dialog>
+    """
+  end
+
+  @doc """
   Renders an input with label and error messages.
 
   A `Phoenix.HTML.FormField` may be passed as argument,
@@ -340,6 +419,7 @@ defmodule CaracolWeb.CoreComponents do
   """
   attr :id, :string, required: true
   attr :rows, :list, required: true
+  attr :class, :any, default: nil
   attr :row_id, :any, default: nil, doc: "the function for generating the row id"
   attr :row_click, :any, default: nil, doc: "the function for handling phx-click on each row"
 
@@ -360,7 +440,7 @@ defmodule CaracolWeb.CoreComponents do
       end
 
     ~H"""
-    <table class="table table-zebra">
+    <table class={["table table-zebra", @class]}>
       <thead>
         <tr>
           <th :for={col <- @col}>{col[:label]}</th>

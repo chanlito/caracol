@@ -16,7 +16,7 @@ defmodule CaracolWeb.SettingsComponents do
       ])
 
     ~H"""
-    <section class="max-w-4xl">
+    <section class="max-w-4xl xl:max-w-5xl">
       <nav id="settings-subnav" aria-label="Settings sections">
         <div role="tablist" class="tabs tabs-lift">
           <.link

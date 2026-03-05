@@ -19,6 +19,8 @@ defmodule Caracol.Accounts.UserToken do
     field :context, :string
     field :sent_to, :string
     field :authenticated_at, :utc_datetime
+    field :user_agent, :string
+    field :ip_address, :string
     belongs_to :user, Caracol.Accounts.User
 
     timestamps(type: :utc_datetime, updated_at: false)
@@ -43,11 +45,23 @@ defmodule Caracol.Accounts.UserToken do
   and devices in the UI and allow users to explicitly expire any
   session they deem invalid.
   """
-  def build_session_token(user) do
+  def build_session_token(user, attrs \\ %{}) do
     token = :crypto.strong_rand_bytes(@rand_size)
     dt = user.authenticated_at || DateTime.utc_now(:second)
-    {token, %UserToken{token: token, context: "session", user_id: user.id, authenticated_at: dt}}
+
+    metadata = Map.take(attrs, [:user_agent, :ip_address])
+
+    {token,
+     %UserToken{
+       token: token,
+       context: "session",
+       user_id: user.id,
+       authenticated_at: dt
+     }
+     |> Map.merge(metadata)}
   end
+
+  def session_validity_in_days, do: @session_validity_in_days
 
   @doc """
   Checks if the token is valid and returns its underlying lookup query.

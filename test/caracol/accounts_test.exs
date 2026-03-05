@@ -252,7 +252,7 @@ defmodule Caracol.AccountsTest do
     end
   end
 
-  describe "generate_user_session_token/1" do
+  describe "generate_user_session_token/2" do
     setup do
       %{user: user_fixture()}
     end
@@ -279,6 +279,41 @@ defmodule Caracol.AccountsTest do
       assert user_token = Repo.get_by(UserToken, token: token)
       assert user_token.authenticated_at == user.authenticated_at
       assert DateTime.compare(user_token.inserted_at, user.authenticated_at) == :gt
+    end
+
+    test "stores session metadata when provided", %{user: user} do
+      token =
+        Accounts.generate_user_session_token(user, %{
+          user_agent: "Mozilla/5.0 (Macintosh; Intel Mac OS X 14_0)",
+          ip_address: "203.0.113.12"
+        })
+
+      assert user_token = Repo.get_by(UserToken, token: token)
+      assert user_token.user_agent == "Mozilla/5.0 (Macintosh; Intel Mac OS X 14_0)"
+      assert user_token.ip_address == "203.0.113.12"
+    end
+
+    test "broadcasts session changes to subscribed scopes", %{user: user} do
+      other_user = user_fixture()
+      assert :ok = Accounts.subscribe_user_sessions(user_scope_fixture(user))
+
+      parent = self()
+
+      _probe =
+        spawn_link(fn ->
+          _ = Accounts.subscribe_user_sessions(user_scope_fixture(other_user))
+
+          receive do
+            :sessions_changed -> send(parent, :other_scope_received)
+          after
+            500 -> :ok
+          end
+        end)
+
+      _token = Accounts.generate_user_session_token(user)
+
+      assert_receive :sessions_changed
+      refute_receive :other_scope_received, 200
     end
   end
 
@@ -367,6 +402,70 @@ defmodule Caracol.AccountsTest do
       token = Accounts.generate_user_session_token(user)
       assert Accounts.delete_user_session_token(token) == :ok
       refute Accounts.get_user_by_session_token(token)
+    end
+
+    test "broadcasts session changes" do
+      user = user_fixture()
+      token = Accounts.generate_user_session_token(user)
+      assert :ok = Accounts.subscribe_user_sessions(user_scope_fixture(user))
+
+      assert Accounts.delete_user_session_token(token) == :ok
+      assert_receive :sessions_changed
+    end
+  end
+
+  describe "revoke_user_session/2" do
+    test "revokes a token for the current scoped user" do
+      user = user_fixture()
+      token = Accounts.generate_user_session_token(user)
+      assert %UserToken{id: session_id} = Repo.get_by(UserToken, token: token)
+
+      assert {:ok, revoked} = Accounts.revoke_user_session(user_scope_fixture(user), session_id)
+      assert revoked.id == session_id
+      refute Repo.get(UserToken, session_id)
+    end
+
+    test "returns not found for invalid session id" do
+      assert {:error, :not_found} =
+               Accounts.revoke_user_session(
+                 user_scope_fixture(),
+                 "11111111-1111-1111-1111-111111111111"
+               )
+    end
+
+    test "does not revoke another user's token" do
+      owner = user_fixture()
+      other = user_fixture()
+      token = Accounts.generate_user_session_token(owner)
+      assert %UserToken{id: session_id} = Repo.get_by(UserToken, token: token)
+
+      assert {:error, :not_found} =
+               Accounts.revoke_user_session(user_scope_fixture(other), session_id)
+
+      assert Repo.get(UserToken, session_id)
+    end
+
+    test "broadcasts session changes on revoke" do
+      user = user_fixture()
+      token = Accounts.generate_user_session_token(user)
+      assert %UserToken{id: session_id} = Repo.get_by(UserToken, token: token)
+      assert :ok = Accounts.subscribe_user_sessions(user_scope_fixture(user))
+
+      assert {:ok, _revoked} = Accounts.revoke_user_session(user_scope_fixture(user), session_id)
+      assert_receive :sessions_changed
+    end
+  end
+
+  describe "update_user_password/2 session expiration broadcasts" do
+    test "broadcasts session changes when session tokens are expired" do
+      user = user_fixture()
+      _token = Accounts.generate_user_session_token(user)
+      assert :ok = Accounts.subscribe_user_sessions(user_scope_fixture(user))
+
+      assert {:ok, {_user, _expired_tokens}} =
+               Accounts.update_user_password(user, %{password: "new valid password"})
+
+      assert_receive :sessions_changed
     end
   end
 

@@ -4,7 +4,9 @@ defmodule CaracolWeb.UserAuthTest do
   alias Phoenix.LiveView
   alias Caracol.Accounts
   alias Caracol.Accounts.Scope
+  alias Caracol.Accounts.UserToken
   alias CaracolWeb.UserAuth
+  alias Caracol.Repo
 
   import Caracol.AccountsFixtures
 
@@ -103,6 +105,37 @@ defmodule CaracolWeb.UserAuthTest do
       assert signed_token != get_session(conn, :user_token)
       assert max_age == @remember_me_cookie_max_age
       assert get_session(conn, :user_remember_me) == true
+    end
+
+    test "captures user-agent and x-forwarded-for metadata", %{conn: conn, user: user} do
+      conn =
+        conn
+        |> put_req_header(
+          "user-agent",
+          "Mozilla/5.0 (Macintosh) AppleWebKit Chrome/124.0 Safari/537.36"
+        )
+        |> put_req_header("x-forwarded-for", "198.51.100.10, 10.0.0.1")
+        |> UserAuth.log_in_user(user)
+
+      token = get_session(conn, :user_token)
+      assert %UserToken{} = session_token = Repo.get_by(UserToken, token: token)
+
+      assert session_token.user_agent ==
+               "Mozilla/5.0 (Macintosh) AppleWebKit Chrome/124.0 Safari/537.36"
+
+      assert session_token.ip_address == "198.51.100.10"
+    end
+
+    test "falls back to remote_ip when x-forwarded-for is invalid", %{conn: conn, user: user} do
+      conn =
+        conn
+        |> Map.put(:remote_ip, {203, 0, 113, 22})
+        |> put_req_header("x-forwarded-for", "not-an-ip")
+        |> UserAuth.log_in_user(user)
+
+      token = get_session(conn, :user_token)
+      assert %UserToken{} = session_token = Repo.get_by(UserToken, token: token)
+      assert session_token.ip_address == "203.0.113.22"
     end
   end
 
