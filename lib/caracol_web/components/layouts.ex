@@ -63,7 +63,7 @@ defmodule CaracolWeb.Layouts do
       </div>
     </header>
 
-    <main class="px-4 py-20 sm:px-6 lg:px-8">
+    <main class="px-4 py-20 sm:px-6">
       <div class="mx-auto max-w-2xl space-y-4">
         {render_slot(@inner_block)}
       </div>
@@ -108,7 +108,7 @@ defmodule CaracolWeb.Layouts do
           </div>
         </header>
 
-        <main class="flex-1 px-4 py-6 sm:px-6 lg:px-8">
+        <main class="flex-1 px-4 py-6 sm:px-6">
           {render_slot(@inner_block)}
         </main>
       </div>
@@ -117,11 +117,11 @@ defmodule CaracolWeb.Layouts do
         <label for="app-shell-drawer" class="drawer-overlay"></label>
         <aside
           id="app-shell-sidebar"
-          class="flex h-full min-h-full w-72 flex-col border-r border-base-300 bg-base-100 px-3 py-4 transition-[width,padding] duration-200 ease-out"
+          class="flex h-full min-h-full w-72 flex-col border-r border-base-300 bg-base-100 px-3 transition-[width,padding] duration-200 ease-out"
         >
           <.link
             navigate={~p"/app"}
-            class="app-shell-brand-link app-shell-nav-link grid w-full min-h-10 grid-cols-[2rem_minmax(0,1fr)] items-center gap-2 rounded-lg px-3 py-2.5 text-base font-bold tracking-tight transition hover:bg-base-200 hover:text-primary"
+            class="app-shell-brand-link app-shell-nav-link grid w-full min-h-10 my-2 grid-cols-[2rem_minmax(0,1fr)] items-center gap-2 rounded-lg px-3 py-2 text-base font-bold tracking-tight transition hover:bg-base-200 hover:text-primary"
           >
             <span class="app-shell-row-icon inline-flex size-8 items-center justify-center">
               <.icon name="hero-command-line" class="size-5 text-primary" />
@@ -129,7 +129,7 @@ defmodule CaracolWeb.Layouts do
             <span class="app-shell-brand-label app-shell-row-label">Caracol</span>
           </.link>
 
-          <nav class="mt-4">
+          <nav class="mt-4 pt-2">
             <ul class="menu w-full gap-2 p-0">
               <li class="w-full">
                 <.link
@@ -196,51 +196,51 @@ defmodule CaracolWeb.Layouts do
               </span>
             </label>
 
-            <div id="app-sidebar-account" class="border-t border-base-300 pt-2">
-            <div id="app-sidebar-user-menu" class="dropdown dropdown-top w-full">
-              <button
-                type="button"
-                tabindex="0"
-                aria-label="Open account menu"
-                class="app-shell-account-trigger app-shell-nav-link grid w-full min-h-10 cursor-pointer grid-cols-[2rem_minmax(0,1fr)] items-center gap-2 rounded-lg px-3 py-2.5 text-left text-sm font-medium text-base-content/80 transition hover:bg-base-200 hover:text-base-content"
-              >
-                <span class="app-shell-row-icon inline-flex size-8 items-center justify-center">
-                  <span class="app-shell-account-avatar inline-flex size-8 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-semibold text-primary-content">
-                    {@user_initials}
-                  </span>
-                </span>
-                <span class="app-shell-account-label app-shell-row-label text-sm font-medium text-base-content/85">
-                  <span class="block truncate">{@current_scope.user.email}</span>
-                </span>
-              </button>
-
-              <ul
-                tabindex="0"
-                class="menu dropdown-content z-20 mb-2 w-56 rounded-box border border-base-300 bg-base-100 p-2 shadow"
-              >
-                <li class="menu-title px-3 py-2 text-[0.7rem] uppercase tracking-[0.16em] text-base-content/60">
-                  Account
-                </li>
-                <li>
-                  <.link id="app-user-settings" navigate={~p"/users/settings"}>
-                    <.icon name="hero-cog-6-tooth" class="size-4" /> Settings
-                  </.link>
-                </li>
-                <li>
-                  <div class="flex items-center justify-between gap-3 px-3 py-2">
-                    <span class="inline-flex items-center gap-2 text-sm">
-                      <.icon name="hero-swatch" class="size-4" /> Theme
+            <div id="app-sidebar-account" class="border-t border-base-300 py-3">
+              <div id="app-sidebar-user-menu" class="dropdown dropdown-top w-full">
+                <button
+                  type="button"
+                  tabindex="0"
+                  aria-label="Open account menu"
+                  class="app-shell-account-trigger app-shell-nav-link grid w-full min-h-10 cursor-pointer grid-cols-[2rem_minmax(0,1fr)] items-center gap-2 rounded-lg px-3 py-2.5 text-left text-sm font-medium text-base-content/80 transition hover:bg-base-200 hover:text-base-content"
+                >
+                  <span class="app-shell-row-icon inline-flex size-8 items-center justify-center">
+                    <span class="app-shell-account-avatar inline-flex size-8 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-semibold text-primary-content">
+                      {@user_initials}
                     </span>
-                    <.theme_dropdown id="app-theme-dropdown" />
-                  </div>
-                </li>
-                <li>
-                  <.link id="app-user-logout" href={~p"/users/log-out"} method="delete">
-                    <.icon name="hero-arrow-right-start-on-rectangle" class="size-4" /> Log out
-                  </.link>
-                </li>
-              </ul>
-            </div>
+                  </span>
+                  <span class="app-shell-account-label app-shell-row-label text-sm font-medium text-base-content/85">
+                    <span class="block truncate">{@current_scope.user.email}</span>
+                  </span>
+                </button>
+
+                <ul
+                  tabindex="0"
+                  class="menu dropdown-content z-20 mb-2 w-56 rounded-box border border-base-300 bg-base-100 p-2 shadow"
+                >
+                  <li class="menu-title px-3 py-2 text-[0.7rem] uppercase tracking-[0.16em] text-base-content/60">
+                    Account
+                  </li>
+                  <li>
+                    <.link id="app-user-settings" navigate={~p"/users/settings"}>
+                      <.icon name="hero-cog-6-tooth" class="size-4" /> Settings
+                    </.link>
+                  </li>
+                  <li>
+                    <div class="flex items-center justify-between gap-3 px-3 py-2">
+                      <span class="inline-flex items-center gap-2 text-sm">
+                        <.icon name="hero-swatch" class="size-4" /> Theme
+                      </span>
+                      <.theme_dropdown id="app-theme-dropdown" />
+                    </div>
+                  </li>
+                  <li>
+                    <.link id="app-user-logout" href={~p"/users/log-out"} method="delete">
+                      <.icon name="hero-arrow-right-start-on-rectangle" class="size-4" /> Log out
+                    </.link>
+                  </li>
+                </ul>
+              </div>
             </div>
           </div>
         </aside>
