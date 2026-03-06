@@ -43,41 +43,78 @@ defmodule CaracolWeb.CoreComponents do
   attr :flash, :map, default: %{}, doc: "the map of flash messages to display"
   attr :title, :string, default: nil
   attr :kind, :atom, values: [:info, :error], doc: "used for styling and flash lookup"
+  attr :auto_dismiss_ms, :integer, default: nil, doc: "auto-dismiss delay in milliseconds"
   attr :rest, :global, doc: "the arbitrary HTML attributes to add to the flash container"
 
   slot :inner_block, doc: "the optional inner block that renders the flash message"
 
   def flash(assigns) do
-    assigns = assign_new(assigns, :id, fn -> "flash-#{assigns.kind}" end)
+    assigns =
+      assigns
+      |> assign_new(:id, fn -> "flash-#{assigns.kind}" end)
+      |> assign(:auto_dismiss_ms, resolve_auto_dismiss_ms(assigns.kind, assigns.auto_dismiss_ms))
+      |> assign(:role, flash_role(assigns.kind))
+      |> assign(:aria_live, flash_aria_live(assigns.kind))
 
     ~H"""
     <div
       :if={msg = render_slot(@inner_block) || Phoenix.Flash.get(@flash, @kind)}
       id={@id}
-      phx-click={JS.push("lv:clear-flash", value: %{key: @kind}) |> hide("##{@id}")}
-      role="alert"
-      class="toast toast-top toast-end z-50"
+      role={@role}
+      aria-live={@aria_live}
+      phx-hook={if @auto_dismiss_ms, do: "FlashAutoDismiss", else: nil}
+      data-auto-dismiss-ms={@auto_dismiss_ms}
       {@rest}
     >
       <div class={[
-        "alert w-80 sm:w-96 max-w-80 sm:max-w-96 text-wrap",
-        @kind == :info && "alert-info",
-        @kind == :error && "alert-error"
+        "flex w-[min(24rem,calc(100vw-2rem))] max-w-full items-center gap-3 rounded-box border px-4 py-3 text-sm leading-6 text-wrap shadow-sm",
+        @kind == :info &&
+          "border-info/45 [background:color-mix(in_oklab,var(--color-info)_10%,var(--color-base-100))] dark:[background:color-mix(in_oklab,var(--color-info)_18%,var(--color-base-200))]",
+        @kind == :error &&
+          "border-error/45 [background:color-mix(in_oklab,var(--color-error)_10%,var(--color-base-100))] dark:border-error/65 dark:[background:color-mix(in_oklab,var(--color-error)_28%,var(--color-base-200))]"
       ]}>
-        <.icon :if={@kind == :info} name="hero-information-circle" class="size-5 shrink-0" />
-        <.icon :if={@kind == :error} name="hero-exclamation-circle" class="size-5 shrink-0" />
-        <div>
-          <p :if={@title} class="font-semibold">{@title}</p>
-          <p>{msg}</p>
+        <span
+          :if={@kind == :info}
+          class="inline-flex size-8 shrink-0 items-center justify-center rounded-full bg-info/15"
+        >
+          <.icon name="hero-information-circle" class="size-5 shrink-0 text-info" />
+        </span>
+        <span
+          :if={@kind == :error}
+          class="inline-flex size-8 shrink-0 items-center justify-center rounded-full bg-error-content/20 dark:bg-error/30"
+        >
+          <.icon
+            name="hero-exclamation-triangle"
+            class="size-5 shrink-0 text-error-content dark:text-error"
+          />
+        </span>
+        <div class="min-w-0 flex-1">
+          <p :if={@title} class="font-semibold text-base-content">{@title}</p>
+          <p class="text-base-content">{msg}</p>
         </div>
-        <div class="flex-1" />
-        <button type="button" class="group self-start cursor-pointer" aria-label={gettext("close")}>
+        <button
+          type="button"
+          data-role="toast-close"
+          phx-click={JS.push("lv:clear-flash", value: %{key: @kind}) |> hide("##{@id}")}
+          class="group inline-flex h-11 w-11 shrink-0 cursor-pointer items-center justify-center self-center rounded-full transition hover:bg-base-content/10 hover:text-base-content focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+          aria-label={gettext("Close notification")}
+        >
           <.icon name="hero-x-mark" class="size-5 opacity-40 group-hover:opacity-70" />
         </button>
       </div>
     </div>
     """
   end
+
+  defp flash_role(:info), do: "status"
+  defp flash_role(:error), do: "alert"
+
+  defp flash_aria_live(:info), do: "polite"
+  defp flash_aria_live(:error), do: "assertive"
+
+  defp resolve_auto_dismiss_ms(:info, nil), do: 5_000
+  defp resolve_auto_dismiss_ms(_kind, nil), do: nil
+  defp resolve_auto_dismiss_ms(_kind, auto_dismiss_ms), do: auto_dismiss_ms
 
   @doc """
   Renders a button with navigation support.

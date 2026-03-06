@@ -25,6 +25,7 @@ import {LiveSocket} from "phoenix_live_view"
 import {hooks as colocatedHooks} from "phoenix-colocated/caracol"
 import topbar from "../vendor/topbar"
 import DialogModal from "./hooks/dialog_modal"
+import FlashAutoDismiss from "./hooks/flash_auto_dismiss"
 import Sidebar from "./hooks/sidebar"
 
 const csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute("content")
@@ -36,6 +37,7 @@ const liveSocket = new LiveSocket("/live", Socket, {
   params: {_csrf_token: csrfToken, utc_offset_minutes: utcOffsetMinutes()},
   hooks: {
     DialogModal,
+    FlashAutoDismiss,
     Sidebar,
     ...colocatedHooks,
   },

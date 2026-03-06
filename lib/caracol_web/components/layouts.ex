@@ -308,7 +308,7 @@ defmodule CaracolWeb.Layouts do
 
   def flash_group(assigns) do
     ~H"""
-    <div id={@id} aria-live="polite">
+    <div id={@id} class="toast toast-end toast-bottom z-50">
       <.flash kind={:info} flash={@flash} />
       <.flash kind={:error} flash={@flash} />
 

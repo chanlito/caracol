@@ -89,6 +89,57 @@ defmodule CaracolWeb.LinkLive.IndexTest do
       refute has_element?(view, "#link-archived-badge-#{restored.id}")
     end
 
+    test "renders stacked toasts with semantics and dismiss behavior", %{conn: conn, user: user} do
+      scope = Scope.for_user(user)
+
+      [first, second, third, fourth] =
+        Enum.map(1..4, fn index ->
+          link_fixture(scope, %{name: "Favorite #{index}"})
+        end)
+
+      {:ok, view, _html} = live(conn, ~p"/links")
+
+      render_click(element(view, "#link-toggle-favorite-#{first.id}"))
+
+      assert has_element?(view, "#flash-group.toast.toast-end.toast-bottom")
+      assert has_element?(view, "#flash-group > #flash-info[role='status'][aria-live='polite']")
+
+      assert has_element?(
+               view,
+               "#flash-group > #flash-info[phx-hook='FlashAutoDismiss'][data-auto-dismiss-ms='5000']"
+             )
+
+      refute has_element?(view, "#flash-group > #flash-info[phx-click]")
+
+      assert has_element?(
+               view,
+               "#flash-group > #flash-info button[data-role='toast-close'][phx-click]"
+             )
+
+      assert has_element?(
+               view,
+               "#flash-group > #flash-info button[data-role='toast-close'][class*='h-11'][class*='w-11'][class*='focus-visible:outline']"
+             )
+
+      render_click(element(view, "#link-toggle-favorite-#{second.id}"))
+      render_click(element(view, "#link-toggle-favorite-#{third.id}"))
+      render_click(element(view, "#link-toggle-favorite-#{fourth.id}"))
+
+      assert has_element?(view, "#flash-group > #flash-info")
+
+      assert has_element?(
+               view,
+               "#flash-group > #flash-error[role='alert'][aria-live='assertive']"
+             )
+
+      refute has_element?(view, "#flash-group > #flash-error[phx-hook='FlashAutoDismiss']")
+
+      assert has_element?(
+               view,
+               "#flash-group > #flash-error button[data-role='toast-close'][phx-click]"
+             )
+    end
+
     test "updates click count in real time when a link is opened", %{conn: conn, user: user} do
       scope = Scope.for_user(user)
       link = link_fixture(scope, %{name: "Open Me"})
