@@ -79,6 +79,7 @@ defmodule CaracolWeb.Layouts do
   attr :flash, :map, required: true, doc: "the map of flash messages"
   attr :current_scope, :map, required: true, doc: "the current user scope"
   attr :current_path, :string, default: nil, doc: "the current path for active nav state"
+  attr :favorite_links, :list, default: [], doc: "global favorite links for sidebar"
   slot :inner_block, required: true
 
   def app_shell(assigns) do
@@ -159,6 +160,19 @@ defmodule CaracolWeb.Layouts do
               </li>
               <li class="w-full">
                 <.link
+                  id="app-nav-links"
+                  navigate={~p"/links"}
+                  class={nav_link_classes(@current_path == ~p"/links")}
+                  data-tip="Links"
+                >
+                  <span class="app-shell-row-icon inline-flex size-8 items-center justify-center">
+                    <.icon name="hero-link" class="size-4 shrink-0" />
+                  </span>
+                  <span class="app-shell-nav-label app-shell-row-label">Links</span>
+                </.link>
+              </li>
+              <li class="w-full">
+                <.link
                   id="app-nav-settings"
                   navigate={~p"/users/settings"}
                   class={nav_link_classes(settings_path?(@current_path))}
@@ -172,6 +186,39 @@ defmodule CaracolWeb.Layouts do
               </li>
             </ul>
           </nav>
+
+          <div
+            :if={@favorite_links != []}
+            id="app-sidebar-favorite-links"
+            class="mt-4 border-t border-base-300 pt-3"
+          >
+            <p
+              id="app-sidebar-favorite-links-title"
+              class="app-shell-nav-label px-3 text-[0.68rem] font-semibold uppercase tracking-[0.16em] text-base-content/60"
+            >
+              <.icon name="hero-heart" class="mr-1 inline size-3.5 text-error" /> Links
+            </p>
+
+            <ul id="app-sidebar-favorite-links-list" class="menu mt-2 w-full gap-1 p-0">
+              <li :for={link <- @favorite_links} class="w-full">
+                <a
+                  id={"app-sidebar-favorite-link-#{link.id}"}
+                  href={~p"/links/#{link.id}/open"}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="app-shell-nav-link grid w-full min-h-9 grid-cols-[2rem_minmax(0,1fr)] items-center gap-2 rounded-lg px-3 py-2 text-sm text-base-content/80 transition hover:bg-base-200 hover:text-base-content"
+                >
+                  <span
+                    class="app-shell-row-icon inline-flex size-8 items-center justify-center rounded-full bg-[var(--favorite-link-color)] [color:color-mix(in_oklab,var(--color-base-100)_92%,var(--color-base-content))] transition-colors dark:bg-transparent dark:text-[var(--favorite-link-color)]"
+                    style={"--favorite-link-color: #{link.color}"}
+                  >
+                    <.icon name={link.icon} class="size-4 shrink-0" />
+                  </span>
+                  <span class="app-shell-nav-label app-shell-row-label truncate">{link.name}</span>
+                </a>
+              </li>
+            </ul>
+          </div>
 
           <div class="mt-auto">
             <label

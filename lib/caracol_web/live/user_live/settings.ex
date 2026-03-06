@@ -13,6 +13,7 @@ defmodule CaracolWeb.UserLive.Settings do
       flash={@flash}
       current_scope={@current_scope}
       current_path={~p"/users/settings"}
+      favorite_links={Map.get(assigns, :favorite_links, [])}
     >
       <.settings_panel current_path={~p"/users/settings"}>
         <section id="account-settings" class="max-w-3xl space-y-6">

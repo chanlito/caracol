@@ -51,11 +51,19 @@ defmodule CaracolWeb.Router do
     pipe_through [:browser, :require_authenticated_user]
 
     get "/users", UserRedirectController, :index
+    get "/links/:id/open", LinkRedirectController, :open
 
     live_session :require_authenticated_user,
-      on_mount: [{CaracolWeb.UserAuth, :require_authenticated}] do
+      on_mount: [
+        {CaracolWeb.UserAuth, :require_authenticated},
+        {CaracolWeb.GlobalFavorites, :global_favorites}
+      ] do
       live "/home", AppLive.Home, :index
       live "/playground", AppLive.Playground, :index
+      live "/links", LinkLive.Index, :index
+      live "/links/new", LinkLive.Index, :new
+      live "/links/:id/edit", LinkLive.Index, :edit
+      live "/links/:id/delete", LinkLive.Index, :delete
       live "/users/settings", UserLive.Settings, :edit
       live "/users/appearance", UserLive.Appearance, :index
       live "/users/sessions", UserLive.Sessions, :index

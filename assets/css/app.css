@@ -5,6 +5,7 @@
 @source "../css";
 @source "../js";
 @source "../../lib/caracol_web";
+@source inline("hero-link hero-globe-alt hero-bookmark hero-folder hero-document-text hero-code-bracket hero-light-bulb hero-academic-cap hero-briefcase hero-chart-bar");
 
 /* A Tailwind plugin that makes "hero-#{ICON}" classes available.
    The heroicons installation itself is managed by your mix.exs */

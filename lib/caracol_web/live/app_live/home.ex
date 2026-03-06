@@ -4,7 +4,12 @@ defmodule CaracolWeb.AppLive.Home do
   @impl true
   def render(assigns) do
     ~H"""
-    <Layouts.app_shell flash={@flash} current_scope={@current_scope} current_path={~p"/home"}>
+    <Layouts.app_shell
+      flash={@flash}
+      current_scope={@current_scope}
+      current_path={~p"/home"}
+      favorite_links={Map.get(assigns, :favorite_links, [])}
+    >
       <section id="home-page" class="w-full">
         <div class="rounded-box border border-base-300 bg-base-100 p-6 shadow-sm sm:p-8">
           <p class="text-sm font-semibold uppercase tracking-[0.18em] text-base-content/60">

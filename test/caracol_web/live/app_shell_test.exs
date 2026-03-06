@@ -14,6 +14,10 @@ defmodule CaracolWeb.AppShellTest do
       assert {:redirect, %{to: path}} = redirect
       assert path == ~p"/users/log-in"
 
+      assert {:error, redirect} = live(conn, ~p"/links")
+      assert {:redirect, %{to: path}} = redirect
+      assert path == ~p"/users/log-in"
+
       assert {:error, redirect} = live(conn, ~p"/users/settings")
       assert {:redirect, %{to: path}} = redirect
       assert path == ~p"/users/log-in"
@@ -32,7 +36,9 @@ defmodule CaracolWeb.AppShellTest do
       assert has_element?(view, "#app-sidebar-desktop-toggle")
       assert has_element?(view, "#app-nav-home")
       assert has_element?(view, "#app-nav-playground")
+      assert has_element?(view, "#app-nav-links")
       assert has_element?(view, "#app-nav-settings")
+      refute has_element?(view, "#app-sidebar-favorite-links")
       assert has_element?(view, "#app-sidebar-account")
       assert has_element?(view, "#app-sidebar-user-menu")
       assert has_element?(view, "#app-user-settings")
@@ -43,8 +49,12 @@ defmodule CaracolWeb.AppShellTest do
       html = render(view)
       assert html =~ "hero-home"
       assert html =~ "hero-beaker"
+      assert html =~ "hero-link"
       assert html =~ "hero-cog-6-tooth"
       assert html =~ user.email
+
+      assert html =~
+               ~r/id="app-nav-home".*id="app-nav-playground".*id="app-nav-links".*id="app-nav-settings"/s
     end
 
     test "renders placeholder page on /playground for authenticated users", %{conn: conn} do

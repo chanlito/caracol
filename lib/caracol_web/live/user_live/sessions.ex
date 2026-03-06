@@ -150,6 +150,7 @@ defmodule CaracolWeb.UserLive.Sessions do
       flash={@flash}
       current_scope={@current_scope}
       current_path={~p"/users/sessions"}
+      favorite_links={Map.get(assigns, :favorite_links, [])}
     >
       <.settings_panel current_path={~p"/users/sessions"}>
         <section id="sessions-settings" class="w-full space-y-5">

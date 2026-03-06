@@ -14,6 +14,7 @@ defmodule CaracolWeb.UserLive.Appearance do
       flash={@flash}
       current_scope={@current_scope}
       current_path={~p"/users/appearance"}
+      favorite_links={Map.get(assigns, :favorite_links, [])}
     >
       <.settings_panel current_path={~p"/users/appearance"}>
         <section id="appearance-settings" class="space-y-6">
