@@ -159,16 +159,24 @@ socket
 |> assign(:editing_id, link.id)
 ```
 
-**Server→client events via push_event:**
+**Server→client (push_event):**
 ```elixir
-socket = push_event(socket, "my_event", %{key: val})        # LiveView
-mounted() { this.handleEvent("my_event", data => ...) }     # Hook
+# LiveView
+socket = push_event(socket, "my_event", %{key: val})
+```
+```javascript
+// Hook
+mounted() { this.handleEvent("my_event", data => ...) }
 ```
 
-**Client→server events via pushEvent:**
+**Client→server (pushEvent):**
+```javascript
+// Hook
+this.pushEvent("my_event", {key: val}, reply => ...)
+```
 ```elixir
-# Hook:    this.pushEvent("my_event", {key: val}, reply => ...)
-# LiveView: def handle_event("my_event", %{"key" => val}, socket), do: {:reply, %{}, socket}
+# LiveView
+def handle_event("my_event", %{"key" => val}, socket), do: {:reply, %{}, socket}
 ```
 
 - Never use `phx-update="append"` or `phx-update="prepend"` — use streams instead
